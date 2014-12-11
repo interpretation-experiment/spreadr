@@ -1,0 +1,5 @@
+# Development DB
+*.sqlite3
+
+# Python3 caches
+__pycache__/
