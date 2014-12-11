@@ -3,3 +3,6 @@
 
 # Python3 caches
 __pycache__/
+
+# Virtualenv
+.venv
