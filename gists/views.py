@@ -1,21 +1,21 @@
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from gists.models import Sentence
 from gists.serializers import SentenceSerializer
+from django.http import Http404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 
-@api_view(['GET', 'POST'])
-def sentence_list(request, format=None):
+class SentenceList(APIView):
     """
     List all sentences, or create a new sentence.
     """
-    if request.method == 'GET':
+    def get(self, request, format=None):
         sentences = Sentence.objects.all()
         serializer = SentenceSerializer(sentences, many=True)
         return Response(serializer.data)
 
-    elif request.method == 'POST':
+    def post(self, request, format=None):
         serializer = SentenceSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -23,27 +23,30 @@ def sentence_list(request, format=None):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def sentence_detail(request, pk, format=None):
+class SentenceDetail(APIView):
     """
     Retrieve, update or delete a sentence.
     """
-    try:
-        sentence = Sentence.objects.get(pk=pk)
-    except Sentence.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    def get_object(self, pk):
+        try:
+            return Sentence.objects.get(pk=pk)
+        except Sentence.DoesNotExist:
+            raise Http404
 
-    if request.method == 'GET':
+    def get(self, request, pk, format=None):
+        sentence = self.get_object(pk)
         serializer = SentenceSerializer(sentence)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
+    def put(self, request, pk, format=None):
+        sentence = self.get_object(pk)
         serializer = SentenceSerializer(sentence, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
+    def delete(self, request, pk, format=None):
+        sentence = self.get_object(pk)
         sentence.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
