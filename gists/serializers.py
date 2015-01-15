@@ -4,35 +4,42 @@ from rest_framework import serializers
 from gists.models import Sentence
 
 
-class SentenceSerializer(serializers.HyperlinkedModelSerializer):
+class SentenceSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(
+        source='author.username'
+    )
     author_url = serializers.HyperlinkedRelatedField(
         source='author',
         view_name='user-detail',
         read_only=True
     )
-    author_id = serializers.PrimaryKeyRelatedField(
-        source='author',
-        read_only=True
-    )
 
     class Meta:
         model = Sentence
-        fields = ('url', 'id', 'created', 'author_url', 'author_id', 'text',)
+        fields = (
+            'url', 'id',
+            'created',
+            'author', 'author_url',
+            'text',
+        )
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
+    sentences = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Sentence.objects.all()
+    )
     sentence_urls = serializers.HyperlinkedRelatedField(
         source='sentences',
-        many=True,
         view_name='sentence-detail',
-        read_only=True
-    )
-    sentence_ids = serializers.PrimaryKeyRelatedField(
-        source='sentences',
         many=True,
-        queryset=Sentence.objects.all(),
+        read_only=True
     )
 
     class Meta:
         model = User
-        fields = ('url', 'id', 'username', 'sentence_urls', 'sentence_ids',)
+        fields = (
+            'url', 'id',
+            'username',
+            'sentences', 'sentence_urls',
+        )

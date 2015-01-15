@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('text', models.CharField(max_length=5000)),
                 ('author', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='sentences')),
+                ('parent', models.ForeignKey(to='gists.Sentence', related_name='children', default=None)),
             ],
             options={
                 'ordering': ('created',),
