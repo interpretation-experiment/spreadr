@@ -13,6 +13,21 @@ class SentenceSerializer(serializers.ModelSerializer):
         view_name='user-detail',
         read_only=True
     )
+    parent_url = serializers.HyperlinkedRelatedField(
+        source='parent',
+        view_name='sentence-detail',
+        read_only=True
+    )
+    children = serializers.PrimaryKeyRelatedField(
+        many=True,
+        read_only=True
+    )
+    children_urls = serializers.HyperlinkedRelatedField(
+        source='children',
+        view_name='sentence-detail',
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = Sentence
@@ -20,6 +35,8 @@ class SentenceSerializer(serializers.ModelSerializer):
             'url', 'id',
             'created',
             'author', 'author_url',
+            'parent', 'parent_url',
+            'children', 'children_urls',
             'text',
         )
 

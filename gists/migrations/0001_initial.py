@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Sentence',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True, serialize=False)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('text', models.CharField(max_length=5000)),
-                ('author', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='sentences')),
-                ('parent', models.ForeignKey(to='gists.Sentence', related_name='children', default=None)),
+                ('author', models.ForeignKey(related_name='sentences', to=settings.AUTH_USER_MODEL)),
+                ('parent', models.ForeignKey(to='gists.Sentence', related_name='children', null=True)),
             ],
             options={
                 'ordering': ('created',),
