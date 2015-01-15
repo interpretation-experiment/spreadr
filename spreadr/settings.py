@@ -37,11 +37,13 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'gists',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -60,6 +62,9 @@ WSGI_APPLICATION = 'spreadr.wsgi.application'
 REST_FRAMEWORK = {
     'PAGINATE_BY': 10
 }
+
+CORS_ORIGIN_WHITELIST = (
+)
 
 
 # Database
