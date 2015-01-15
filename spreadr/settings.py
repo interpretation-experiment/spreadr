@@ -55,6 +55,13 @@ ROOT_URLCONF = 'spreadr.urls'
 WSGI_APPLICATION = 'spreadr.wsgi.application'
 
 
+# REST Settings
+
+REST_FRAMEWORK = {
+    'PAGINATE_BY': 10
+}
+
+
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 

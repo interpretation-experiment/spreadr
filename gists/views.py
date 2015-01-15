@@ -1,9 +1,20 @@
 from django.contrib.auth.models import User
 from rest_framework import generics, permissions
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
 from gists.models import Sentence
 from gists.serializers import SentenceSerializer, UserSerializer
 from gists.permissions import IsOwnerOrReadOnly
+
+
+@api_view(('GET',))
+def api_root(request, format=None):
+    return Response({
+        'users': reverse('user-list', request=request, format=format),
+        'sentences': reverse('sentence-list', request=request, format=format)
+    })
 
 
 class SentenceList(generics.ListCreateAPIView):
