@@ -1,3 +1,4 @@
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import list_route
@@ -6,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from gists.models import Sentence
 from gists.serializers import SentenceSerializer, UserSerializer
-from gists.permissions import IsOwnerOrReadOnly
+from gists.permissions import IsOwnerOrReadOnly, IsAdminOrSelfOrReadOnly
 
 
 class SentenceViewSet(viewsets.ModelViewSet):
@@ -22,14 +23,19 @@ class SentenceViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     """
-    User list and detail, read-only.
+    User list and detail, unauthenticated registration, authenticated modification.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (IsAdminOrSelfOrReadOnly,)
 
     @list_route(permission_classes=[IsAuthenticated])
     def me(self, request, format=None):
         serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        super(UserViewSet, self).perform_update(serializer)
+        update_session_auth_hash(self.request, serializer.instance)

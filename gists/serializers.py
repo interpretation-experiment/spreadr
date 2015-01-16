@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 
 from gists.models import Sentence
@@ -47,7 +48,7 @@ class SentenceSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     sentences = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=Sentence.objects.all()
+        read_only=True
     )
     sentence_urls = serializers.HyperlinkedRelatedField(
         source='sentences',
@@ -62,4 +63,19 @@ class UserSerializer(serializers.ModelSerializer):
             'url', 'id',
             'username',
             'sentences', 'sentence_urls',
+            'password',
         )
+        write_only_fields = (
+            'password',
+        )
+
+    def create(self, validated_data):
+        hpassword = make_password(validated_data['password'])
+        validated_data['password'] = hpassword
+        return super(UserSerializer, self).create(validated_data)
+
+    def update(self, instance, validated_data):
+        if 'password' in validated_data:
+            hpassword = make_password(validated_data['password'])
+            validated_data['password'] = hpassword
+        return super(UserSerializer, self).update(instance, validated_data)
