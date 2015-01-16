@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 
 from gists.models import Sentence
@@ -70,12 +69,14 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        hpassword = make_password(validated_data['password'])
-        validated_data['password'] = hpassword
-        return super(UserSerializer, self).create(validated_data)
+        user = super(UserSerializer, self).create(validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
     def update(self, instance, validated_data):
+        user = super(UserSerializer, self).update(instance, validated_data)
         if 'password' in validated_data:
-            hpassword = make_password(validated_data['password'])
-            validated_data['password'] = hpassword
-        return super(UserSerializer, self).update(instance, validated_data)
+            user.set_password(validated_data['password'])
+            user.save()
+        return user
