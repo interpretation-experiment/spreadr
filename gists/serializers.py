@@ -5,13 +5,16 @@ from gists.models import Sentence
 
 
 class SentenceSerializer(serializers.ModelSerializer):
-    author = serializers.ReadOnlyField(
-        source='author.username'
+    author = serializers.PrimaryKeyRelatedField(
+        read_only=True
     )
     author_url = serializers.HyperlinkedRelatedField(
         source='author',
         view_name='user-detail',
         read_only=True
+    )
+    author_username = serializers.ReadOnlyField(
+        source='author.username'
     )
     parent_url = serializers.HyperlinkedRelatedField(
         source='parent',
@@ -34,7 +37,7 @@ class SentenceSerializer(serializers.ModelSerializer):
         fields = (
             'url', 'id',
             'created',
-            'author', 'author_url',
+            'author', 'author_url', 'author_username',
             'parent', 'parent_url',
             'children', 'children_urls',
             'text',
