@@ -1,3 +1,5 @@
+from random import randint
+
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from rest_framework import permissions, viewsets
@@ -18,6 +20,20 @@ class SentenceViewSet(viewsets.ModelViewSet):
     serializer_class = SentenceSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
+
+    def _random(self, request, queryset):
+        instance = queryset[randint(0, queryset.count() - 1)]
+        serializer = SentenceSerializer(instance, context={'request': request})
+        return Response(serializer.data)
+
+    @list_route(permission_classes=[permissions.IsAuthenticated])
+    def random_excluding_self(self, request, format=None):
+        queryset = self.queryset.exclude(author=request.user)
+        return self._random(request, queryset)
+
+    @list_route()
+    def random(self, request, format=None):
+        return self._random(request, self.queryset)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
