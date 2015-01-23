@@ -6,6 +6,7 @@ from gists import views
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
+router.register(r'trees', views.TreeViewSet)
 router.register(r'sentences', views.SentenceViewSet)
 router.register(r'users', views.UserViewSet)
 

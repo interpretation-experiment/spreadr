@@ -3,13 +3,13 @@ from django.db import models
 
 class Sentence(models.Model):
     created = models.DateTimeField(auto_now_add=True)
+    tree = models.ForeignKey('Tree', related_name='sentences')
     author = models.ForeignKey('auth.User', related_name='sentences')
-    parent = models.ForeignKey('Sentence', related_name='children',
-                               null=True)
+    parent = models.ForeignKey('Sentence', related_name='children', null=True)
     text = models.CharField(max_length=5000)
 
     class Meta:
-        ordering = ('created',)
+        ordering = ('-created',)
 
     def __str__(self):
         max_length = 20
@@ -18,3 +18,9 @@ class Sentence(models.Model):
         string = "<Sentence {} by '{}': '{}'>".format(
             self.id, self.author.username, self.text[:trunc] + post)
         return string
+
+
+class Tree(models.Model):
+
+    def authors(self):
+        return set([s.author for s in self.sentences.all()])
