@@ -66,6 +66,7 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework.filters.OrderingFilter',
         'rest_framework.filters.SearchFilter',
+        'gists.filters.SampleFilterBackend',
     )
 }
 
