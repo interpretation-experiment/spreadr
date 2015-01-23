@@ -62,7 +62,11 @@ WSGI_APPLICATION = 'spreadr.wsgi.application'
 REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
     'PAGINATE_BY_PARAM': 'page_size',
-    'MAX_PAGINATE_BY': 100
+    'MAX_PAGINATE_BY': 100,
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.OrderingFilter',
+        'rest_framework.filters.SearchFilter',
+    )
 }
 
 CORS_ORIGIN_WHITELIST = (

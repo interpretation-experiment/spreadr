@@ -18,6 +18,9 @@ class SentenceViewSet(viewsets.ModelViewSet):
     serializer_class = SentenceSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
+    ordering = ('-created',)
+    ordering_fields = ('created',)
+    search_fields = ('text',)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -30,6 +33,9 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOrSelfOrReadOnly,)
+    ordering = ('username',)
+    ordering_fields = ('username',)
+    search_fields = ('username',)
 
     @list_route(permission_classes=[IsAuthenticated])
     def me(self, request, format=None):
