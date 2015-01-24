@@ -1,11 +1,7 @@
-import logging
 from random import sample
 
 from rest_framework import filters
 from django.conf import settings
-
-
-logger = logging.getLogger('django')
 
 
 class SampleFilterBackend(filters.BaseFilterBackend):
@@ -56,5 +52,4 @@ class UnreadFilterBackend(filters.BaseFilterBackend):
         if request.QUERY_PARAMS.get('unread', None) == '':
             return queryset.exclude(tree__in=profile.trees)
         else:
-            logger.warning('no unread param')
             return queryset
