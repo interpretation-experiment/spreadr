@@ -28,6 +28,7 @@ class Tree(models.Model):
 
 
 class Profile(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
     user = models.OneToOneField('auth.User')
 
     @property

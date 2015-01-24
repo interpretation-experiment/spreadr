@@ -118,6 +118,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = (
             'url', 'id',
+            'created',
             'user', 'user_url', 'user_username',
             'trees', 'tree_urls',
             'sentences', 'sentence_urls',
