@@ -45,13 +45,16 @@ class UnreadFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         # Anonymous users have read nothing
         if not request.user.is_authenticated():
-            logger.warning('no auth')
             return queryset
 
+        # Users without a profile have read nothing
+        if (not hasattr(request.user, 'profile')
+                or request.user.profile is None):
+            return queryset
+
+        profile = request.user.profile
         if request.QUERY_PARAMS.get('unread', None) == '':
-            logger.warning('got unread param')
-            trees = set([s.tree for s in request.user.sentences.all()])
-            return queryset.exclude(tree__in=trees)
+            return queryset.exclude(tree__in=profile.trees)
         else:
             logger.warning('no unread param')
             return queryset

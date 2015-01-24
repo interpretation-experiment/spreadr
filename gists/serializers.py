@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from gists.models import Sentence, Tree
+from gists.models import Sentence, Tree, Profile
 
 
 class TreeSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class TreeSerializer(serializers.ModelSerializer):
     )
     author_urls = serializers.HyperlinkedRelatedField(
         source='authors',
-        view_name='user-detail',
+        view_name='profile-detail',
         many=True,
         read_only=True
     )
@@ -49,11 +49,11 @@ class SentenceSerializer(serializers.ModelSerializer):
     )
     author_url = serializers.HyperlinkedRelatedField(
         source='author',
-        view_name='user-detail',
+        view_name='profile-detail',
         read_only=True
     )
     author_username = serializers.ReadOnlyField(
-        source='author.username'
+        source='author.user.username'
     )
     parent_url = serializers.HyperlinkedRelatedField(
         source='parent',
@@ -84,17 +84,25 @@ class SentenceSerializer(serializers.ModelSerializer):
         )
 
 
-class UserSerializer(serializers.ModelSerializer):
-    #trees = serializers.PrimaryKeyRelatedField(
-        #many=True,
-        #read_only=True
-    #)
-    #tree_urls = serializers.HyperlinkedRelatedField(
-        #source='trees',
-        #view_name='tree-detail',
-        #many=True,
-        #read_only=True
-    #)
+class ProfileSerializer(serializers.ModelSerializer):
+    user_username = serializers.ReadOnlyField(
+        source='user.username'
+    )
+    user_url = serializers.HyperlinkedRelatedField(
+        source='user',
+        view_name='user-detail',
+        read_only=True
+    )
+    trees = serializers.PrimaryKeyRelatedField(
+        many=True,
+        read_only=True
+    )
+    tree_urls = serializers.HyperlinkedRelatedField(
+        source='trees',
+        view_name='tree-detail',
+        many=True,
+        read_only=True
+    )
     sentences = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
@@ -106,16 +114,35 @@ class UserSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    def trees(self):
-        return set([s.tree for s in self.sentences])
+    class Meta:
+        model = Profile
+        fields = (
+            'url', 'id',
+            'user', 'user_url', 'user_username',
+            'trees', 'tree_urls',
+            'sentences', 'sentence_urls',
+        )
+        read_only_fields = (
+            'user',
+        )
+
+
+class UserSerializer(serializers.ModelSerializer):
+    profile = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+    profile_url = serializers.HyperlinkedRelatedField(
+        source='profile',
+        view_name='profile-detail',
+        read_only=True
+    )
 
     class Meta:
         model = User
         fields = (
             'url', 'id',
             'username',
-            #'trees', 'tree_urls',
-            'sentences', 'sentence_urls',
+            'profile', 'profile_url',
             'password',
         )
         write_only_fields = (

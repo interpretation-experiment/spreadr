@@ -1,16 +1,19 @@
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.db.models import Count
-from rest_framework import permissions, viewsets, mixins, filters
+from rest_framework import viewsets, mixins, filters
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from gists.filters import SampleFilterBackend, UnreadFilterBackend
-from gists.models import Sentence, Tree
+from gists.models import Sentence, Tree, Profile
 from gists.serializers import (SentenceSerializer, UserSerializer,
-                               TreeSerializer)
-from gists.permissions import IsAdminOrSelfOrReadOnly
+                               TreeSerializer, ProfileSerializer)
+from gists.permissions import (IsAdminOrSelfOrReadOnly,
+                               IsAdminOrUserSelfOrReadOnly,
+                               IsAuthenticatedProfile,
+                               IsAuthenticatedProfileOrReadOnly)
 
 
 class TreeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -30,7 +33,7 @@ class SentenceViewSet(mixins.CreateModelMixin,
     """
     queryset = Sentence.objects.all()
     serializer_class = SentenceSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedProfileOrReadOnly,)
     filter_backends = (filters.OrderingFilter,
                        filters.SearchFilter,
                        UnreadFilterBackend,
@@ -53,10 +56,40 @@ class SentenceViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         parent = serializer.validated_data.get('parent')
         tree = self.obtain_free_tree() if parent is None else parent.tree
-        serializer.save(author=self.request.user, tree=tree)
+        serializer.save(author=self.request.user.profile, tree=tree)
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class ProfileViewSet(mixins.CreateModelMixin,
+                     mixins.RetrieveModelMixin,
+                     mixins.ListModelMixin,
+                     mixins.UpdateModelMixin,
+                     viewsets.GenericViewSet):
+    """
+    Profile list and detail, unauthenticated read, authenticated creation
+    and modification.
+    """
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = (IsAdminOrUserSelfOrReadOnly,)
+    #ordering = ('user__username',)
+    #ordering_fields =
+    #search_fields =
+
+    @list_route(permission_classes=[IsAuthenticatedProfile])
+    def me(self, request, format=None):
+        serializer = ProfileSerializer(request.user.profile,
+                                       context={'request': request})
+        return Response(serializer.data)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class UserViewSet(mixins.CreateModelMixin,
+                  mixins.RetrieveModelMixin,
+                  mixins.ListModelMixin,
+                  mixins.UpdateModelMixin,
+                  viewsets.GenericViewSet):
     """
     User list and detail, unauthenticated registration,
     authenticated modification.
