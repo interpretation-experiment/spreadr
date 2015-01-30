@@ -126,39 +126,3 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'user',
         )
-
-
-class UserSerializer(serializers.ModelSerializer):
-    profile = serializers.PrimaryKeyRelatedField(
-        read_only=True
-    )
-    profile_url = serializers.HyperlinkedRelatedField(
-        source='profile',
-        view_name='profile-detail',
-        read_only=True
-    )
-
-    class Meta:
-        model = User
-        fields = (
-            'url', 'id',
-            'username',
-            'profile', 'profile_url',
-            'password',
-        )
-        write_only_fields = (
-            'password',
-        )
-
-    def create(self, validated_data):
-        user = super(UserSerializer, self).create(validated_data)
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
-
-    def update(self, instance, validated_data):
-        user = super(UserSerializer, self).update(instance, validated_data)
-        if 'password' in validated_data:
-            user.set_password(validated_data['password'])
-            user.save()
-        return user
