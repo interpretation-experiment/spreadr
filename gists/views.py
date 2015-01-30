@@ -1,4 +1,3 @@
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.db.models import Count
 from rest_framework import viewsets, mixins, filters
@@ -8,10 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from gists.filters import SampleFilterBackend, UnreadFilterBackend
 from gists.models import Sentence, Tree, Profile
-from gists.serializers import (SentenceSerializer, UserSerializer,
-                               TreeSerializer, ProfileSerializer)
-from gists.permissions import (IsAdminOrSelfOrReadOnly,
-                               IsAdminOrUserSelfOrReadOnly,
+from gists.serializers import (SentenceSerializer, TreeSerializer,
+                               ProfileSerializer, UserSerializer)
+from gists.permissions import (IsAdminOrUserSelfOrReadOnly,
                                IsAuthenticatedProfile,
                                IsAuthenticatedProfileOrReadOnly)
 
@@ -85,18 +83,12 @@ class ProfileViewSet(mixins.CreateModelMixin,
         serializer.save(user=self.request.user)
 
 
-class UserViewSet(mixins.CreateModelMixin,
-                  mixins.RetrieveModelMixin,
-                  mixins.ListModelMixin,
-                  mixins.UpdateModelMixin,
-                  viewsets.GenericViewSet):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    User list and detail, unauthenticated registration,
-    authenticated modification.
+    User list and detail, read-only.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdminOrSelfOrReadOnly,)
     ordering = ('username',)
     ordering_fields = ('username',)
     search_fields = ('username',)
@@ -105,7 +97,3 @@ class UserViewSet(mixins.CreateModelMixin,
     def me(self, request, format=None):
         serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
-
-    def perform_update(self, serializer):
-        super(UserViewSet, self).perform_update(serializer)
-        update_session_auth_hash(self.request, serializer.instance)

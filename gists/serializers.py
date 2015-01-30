@@ -29,7 +29,7 @@ class TreeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tree
         fields = (
-            'url', 'id',
+            'id', 'url',
             'sentences', 'sentence_urls',
             'authors', 'author_urls',
         )
@@ -74,7 +74,7 @@ class SentenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sentence
         fields = (
-            'url', 'id',
+            'id', 'url',
             'created',
             'tree', 'tree_url',
             'author', 'author_url', 'author_username',
@@ -117,7 +117,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = (
-            'url', 'id',
+            'id', 'url',
             'created',
             'user', 'user_url', 'user_username',
             'trees', 'tree_urls',
@@ -141,24 +141,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'url', 'id',
-            'username',
+            'id', 'url',
+            'email', 'username',
             'profile', 'profile_url',
-            'password',
         )
-        write_only_fields = (
-            'password',
-        )
-
-    def create(self, validated_data):
-        user = super(UserSerializer, self).create(validated_data)
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
-
-    def update(self, instance, validated_data):
-        user = super(UserSerializer, self).update(instance, validated_data)
-        if 'password' in validated_data:
-            user.set_password(validated_data['password'])
-            user.save()
-        return user
