@@ -29,7 +29,7 @@ class TreeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tree
         fields = (
-            'url', 'id',
+            'id', 'url',
             'sentences', 'sentence_urls',
             'authors', 'author_urls',
         )
@@ -74,7 +74,7 @@ class SentenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sentence
         fields = (
-            'url', 'id',
+            'id', 'url',
             'created',
             'tree', 'tree_url',
             'author', 'author_url', 'author_username',
@@ -117,7 +117,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = (
-            'url', 'id',
+            'id', 'url',
             'created',
             'user', 'user_url', 'user_username',
             'trees', 'tree_urls',
@@ -125,4 +125,23 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             'user',
+        )
+
+
+class UserSerializer(serializers.ModelSerializer):
+    profile = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+    profile_url = serializers.HyperlinkedRelatedField(
+        source='profile',
+        view_name='profile-detail',
+        read_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'url',
+            'email', 'username',
+            'profile', 'profile_url',
         )

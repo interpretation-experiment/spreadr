@@ -3,12 +3,12 @@ from django.db.models import Count
 from rest_framework import viewsets, mixins, filters
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from gists.filters import SampleFilterBackend, UnreadFilterBackend
 from gists.models import Sentence, Tree, Profile
 from gists.serializers import (SentenceSerializer, TreeSerializer,
-                               ProfileSerializer)
-from glue.serializers import UserSerializer
+                               ProfileSerializer, UserSerializer)
 from gists.permissions import (IsAdminOrUserSelfOrReadOnly,
                                IsAuthenticatedProfile,
                                IsAuthenticatedProfileOrReadOnly)
@@ -92,3 +92,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ('username',)
     ordering_fields = ('username',)
     search_fields = ('username',)
+
+    @list_route(permission_classes=[IsAuthenticated])
+    def me(self, request, format=None):
+        serializer = UserSerializer(request.user, context={'request': request})
+        return Response(serializer.data)

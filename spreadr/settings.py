@@ -41,9 +41,9 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'rest_auth',
 
-    #'rest_auth.registration',
-    #'allauth',
-    #'allauth.account',
+    'allauth',
+    'allauth.account',
+    'rest_auth.registration',
 
     #'corsheaders',
     'glue',
@@ -89,6 +89,8 @@ CORS_ORIGIN_WHITELIST = (
 REST_AUTH_SERIALIZERS = {
     'USER_DETAILS_SERIALIZER': 'glue.serializers.UserSerializer'
 }
+
+OLD_PASSWORD_FIELD_ENABLED = True
 
 
 # Database
