@@ -15,12 +15,12 @@ class TreeSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
-    authors = serializers.PrimaryKeyRelatedField(
+    profiles = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
     )
-    author_urls = serializers.HyperlinkedRelatedField(
-        source='authors',
+    profile_urls = serializers.HyperlinkedRelatedField(
+        source='profiles',
         view_name='profile-detail',
         many=True,
         read_only=True
@@ -31,7 +31,7 @@ class TreeSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'url',
             'sentences', 'sentence_urls',
-            'authors', 'author_urls',
+            'profiles', 'profile_urls',
         )
 
 
@@ -44,16 +44,16 @@ class SentenceSerializer(serializers.ModelSerializer):
         view_name='tree-detail',
         read_only=True
     )
-    author = serializers.PrimaryKeyRelatedField(
+    profile = serializers.PrimaryKeyRelatedField(
         read_only=True
     )
-    author_url = serializers.HyperlinkedRelatedField(
-        source='author',
+    profile_url = serializers.HyperlinkedRelatedField(
+        source='profile',
         view_name='profile-detail',
         read_only=True
     )
-    author_username = serializers.ReadOnlyField(
-        source='author.user.username'
+    profile_username = serializers.ReadOnlyField(
+        source='profile.user.username'
     )
     parent_url = serializers.HyperlinkedRelatedField(
         source='parent',
@@ -77,7 +77,7 @@ class SentenceSerializer(serializers.ModelSerializer):
             'id', 'url',
             'created',
             'tree', 'tree_url',
-            'author', 'author_url', 'author_username',
+            'profile', 'profile_url', 'profile_username',
             'parent', 'parent_url',
             'children', 'children_urls',
             'text',

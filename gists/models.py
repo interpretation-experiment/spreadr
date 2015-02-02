@@ -4,7 +4,7 @@ from django.db import models
 class Sentence(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     tree = models.ForeignKey('Tree', related_name='sentences')
-    author = models.ForeignKey('Profile', related_name='sentences')
+    profile = models.ForeignKey('Profile', related_name='sentences')
     parent = models.ForeignKey('Sentence', related_name='children', null=True)
     text = models.CharField(max_length=5000)
 
@@ -23,8 +23,8 @@ class Sentence(models.Model):
 class Tree(models.Model):
 
     @property
-    def authors(self):
-        return set([s.author for s in self.sentences.all()])
+    def profiles(self):
+        return set([s.profile for s in self.sentences.all()])
 
 
 class Profile(models.Model):

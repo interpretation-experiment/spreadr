@@ -15,7 +15,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Profile',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', models.DateTimeField(auto_now_add=True)),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -25,11 +26,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Sentence',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('text', models.CharField(max_length=5000)),
-                ('author', models.ForeignKey(related_name='sentences', to='gists.Profile')),
-                ('parent', models.ForeignKey(related_name='children', to='gists.Sentence', null=True)),
+                ('parent', models.ForeignKey(to='gists.Sentence', null=True, related_name='children')),
+                ('profile', models.ForeignKey(related_name='sentences', to='gists.Profile')),
             ],
             options={
                 'ordering': ('-created',),
@@ -39,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tree',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
             ],
             options={
             },
