@@ -9,9 +9,10 @@ from gists.filters import SampleFilterBackend, UnreadFilterBackend
 from gists.models import Sentence, Tree, Profile
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
-from gists.permissions import (IsAdminOrUserSelfOrReadOnly,
-                               IsAuthenticatedProfile,
-                               IsAuthenticatedProfileOrReadOnly)
+from gists.permissions import (IsAdminOrObjectHasSelfOrReadOnly,
+                               IsAuthenticatedWithoutProfileOrReadOnly,
+                               IsAuthenticatedWithProfile,
+                               IsAuthenticatedWithProfileOrReadOnly)
 
 
 class TreeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -31,7 +32,7 @@ class SentenceViewSet(mixins.CreateModelMixin,
     """
     queryset = Sentence.objects.all()
     serializer_class = SentenceSerializer
-    permission_classes = (IsAuthenticatedProfileOrReadOnly,)
+    permission_classes = (IsAuthenticatedWithProfileOrReadOnly,)
     filter_backends = (filters.OrderingFilter,
                        filters.SearchFilter,
                        UnreadFilterBackend,
@@ -68,12 +69,13 @@ class ProfileViewSet(mixins.CreateModelMixin,
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = (IsAdminOrUserSelfOrReadOnly,)
+    permission_classes = (IsAuthenticatedWithoutProfileOrReadOnly,
+                          IsAdminOrObjectHasSelfOrReadOnly,)
     #ordering = ('user__username',)
     #ordering_fields =
     #search_fields =
 
-    @list_route(permission_classes=[IsAuthenticatedProfile])
+    @list_route(permission_classes=[IsAuthenticatedWithProfile])
     def me(self, request, format=None):
         serializer = ProfileSerializer(request.user.profile,
                                        context={'request': request})
