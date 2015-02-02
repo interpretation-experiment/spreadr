@@ -55,7 +55,7 @@ class SentenceViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         parent = serializer.validated_data.get('parent')
         tree = self.obtain_free_tree() if parent is None else parent.tree
-        serializer.save(author=self.request.user.profile, tree=tree)
+        serializer.save(profile=self.request.user.profile, tree=tree)
 
 
 class ProfileViewSet(mixins.CreateModelMixin,

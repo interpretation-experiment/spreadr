@@ -16,7 +16,7 @@ class Sentence(models.Model):
         length = len(self.text)
         trunc, post = (max_length - 3, '...') if length > max_length else (length, '')
         string = "<Sentence {} by '{}': '{}'>".format(
-            self.id, self.author.user.username, self.text[:trunc] + post)
+            self.id, self.profile.user.username, self.text[:trunc] + post)
         return string
 
 
