@@ -1,8 +1,10 @@
 from django.contrib.auth.models import User
 from django.db.models import Count
-from rest_framework import viewsets, mixins, filters
+from django.conf import settings
+from rest_framework import viewsets, mixins, filters, generics
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
 
 from gists.filters import SampleFilterBackend, UnreadFilterBackend
@@ -13,6 +15,22 @@ from gists.permissions import (IsAdminOrObjectHasSelfOrReadOnly,
                                IsAuthenticatedWithoutProfileOrReadOnly,
                                IsAuthenticatedWithProfile,
                                IsAuthenticatedWithProfileOrReadOnly)
+
+
+class APIRoot(generics.GenericAPIView):
+    """
+    API Root.
+    """
+    def get(self, request, format=None):
+        return Response({
+            'trees': reverse('tree-list', request=request, format=format),
+            'sentences': reverse('sentence-list', request=request,
+                                 format=format),
+            'profiles': reverse('profile-list', request=request,
+                                format=format),
+            'users': reverse('user-list', request=request, format=format),
+            'version': settings.VERSION,
+        })
 
 
 class TreeViewSet(viewsets.ReadOnlyModelViewSet):
