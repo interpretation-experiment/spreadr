@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
 
-from gists.filters import SampleFilterBackend, UnreadFilterBackend
+from gists.filters import SampleFilterBackend, UntouchedFilterBackend
 from gists.models import Sentence, Tree, Profile
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
@@ -39,6 +39,8 @@ class TreeViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Tree.objects.all()
     serializer_class = TreeSerializer
+    filter_backends = (UntouchedFilterBackend,
+                       SampleFilterBackend,)
 
 
 class SentenceViewSet(mixins.CreateModelMixin,
@@ -53,7 +55,6 @@ class SentenceViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAuthenticatedWithProfileOrReadOnly,)
     filter_backends = (filters.OrderingFilter,
                        filters.SearchFilter,
-                       UnreadFilterBackend,
                        SampleFilterBackend,)
     ordering = ('-created',)
     ordering_fields = ('created',)

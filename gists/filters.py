@@ -33,10 +33,10 @@ class SampleFilterBackend(filters.BaseFilterBackend):
         return instance.filter(pk__in=sampled_pks)
 
 
-class UnreadFilterBackend(filters.BaseFilterBackend):
+class UntouchedFilterBackend(filters.BaseFilterBackend):
     """
-    Filter out sentences in trees the user has participated in if the `unread`
-    keyword is present.
+    Filter out trees the user has participated in if the `unread` keyword
+    is present.
     """
     def filter_queryset(self, request, queryset, view):
         # Anonymous users have read nothing
@@ -49,7 +49,7 @@ class UnreadFilterBackend(filters.BaseFilterBackend):
             return queryset
 
         profile = request.user.profile
-        if request.QUERY_PARAMS.get('unread', None) == '':
-            return queryset.exclude(tree__in=profile.trees)
+        if request.QUERY_PARAMS.get('untouched', None) == '':
+            return queryset.exclude(pk__in=[t.pk for t in profile.trees])
         else:
             return queryset
