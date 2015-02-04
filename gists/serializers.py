@@ -32,12 +32,12 @@ class TreeSerializer(serializers.ModelSerializer):
 
         # Anonymous users have read nothing
         if not request.user.is_authenticated():
-            return False
+            return True
 
         # Users without a profile have read nothing
         if (not hasattr(request.user, 'profile')
                 or request.user.profile is None):
-            return False
+            return True
 
         profile = request.user.profile
         return profile not in obj.profiles
