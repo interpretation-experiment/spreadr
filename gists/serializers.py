@@ -25,6 +25,22 @@ class TreeSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+    untouched = serializers.SerializerMethodField()
+
+    def get_untouched(self, obj):
+        request = self.context['request']
+
+        # Anonymous users have read nothing
+        if not request.user.is_authenticated():
+            return False
+
+        # Users without a profile have read nothing
+        if (not hasattr(request.user, 'profile')
+                or request.user.profile is None):
+            return False
+
+        profile = request.user.profile
+        return profile not in obj.profiles
 
     class Meta:
         model = Tree
@@ -32,6 +48,7 @@ class TreeSerializer(serializers.ModelSerializer):
             'id', 'url',
             'sentences', 'sentence_urls',
             'profiles', 'profile_urls',
+            'untouched',
         )
 
 
