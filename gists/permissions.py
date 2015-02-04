@@ -1,6 +1,21 @@
 from rest_framework import permissions
 
 
+class IsAdminOrReadOnly(permissions.BasePermission):
+    """
+    Only allow admin users.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Admin users are allowed everything
+        return request.user.is_staff
+
+
 class IsAdminOrObjectHasSelfOrReadOnly(permissions.BasePermission):
     """
     Only allow admin users or if the object contains the authenticated user.

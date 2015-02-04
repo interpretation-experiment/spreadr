@@ -11,7 +11,8 @@ from gists.filters import SampleFilterBackend, UntouchedFilterBackend
 from gists.models import Sentence, Tree, Profile
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
-from gists.permissions import (IsAdminOrObjectHasSelfOrReadOnly,
+from gists.permissions import (IsAdminOrReadOnly,
+                               IsAdminOrObjectHasSelfOrReadOnly,
                                IsAuthenticatedWithoutProfileOrReadOnly,
                                IsAuthenticatedWithProfile,
                                IsAuthenticatedWithProfileOrReadOnly,
@@ -106,12 +107,16 @@ class ProfileViewSet(mixins.CreateModelMixin,
         serializer.save(user=self.request.user)
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(mixins.RetrieveModelMixin,
+                  mixins.ListModelMixin,
+                  mixins.UpdateModelMixin,
+                  viewsets.GenericViewSet):
     """
     User list and detail, read-only.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (IsAdminOrReadOnly,)
     ordering = ('username',)
     ordering_fields = ('username',)
     search_fields = ('username',)
