@@ -95,6 +95,12 @@ REST_AUTH_SERIALIZERS = {
 OLD_PASSWORD_FIELD_ENABLED = True
 
 
+# Gists balance settings
+
+BASE_CREDIT = 5
+SUGGESTION_COST = 10
+
+
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 

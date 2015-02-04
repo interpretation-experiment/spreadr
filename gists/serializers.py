@@ -139,9 +139,10 @@ class ProfileSerializer(serializers.ModelSerializer):
             'user', 'user_url', 'user_username',
             'trees', 'tree_urls',
             'sentences', 'sentence_urls',
+            'suggestion_credit',
         )
         read_only_fields = (
-            'user',
+            'user', 'suggestion_credit',
         )
 
 

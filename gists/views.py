@@ -14,7 +14,8 @@ from gists.serializers import (SentenceSerializer, TreeSerializer,
 from gists.permissions import (IsAdminOrObjectHasSelfOrReadOnly,
                                IsAuthenticatedWithoutProfileOrReadOnly,
                                IsAuthenticatedWithProfile,
-                               IsAuthenticatedWithProfileOrReadOnly)
+                               IsAuthenticatedWithProfileOrReadOnly,
+                               HasSuggestionCreditOrIsStaffOrReadOnly)
 
 
 class APIRoot(generics.GenericAPIView):
@@ -52,7 +53,8 @@ class SentenceViewSet(mixins.CreateModelMixin,
     """
     queryset = Sentence.objects.all()
     serializer_class = SentenceSerializer
-    permission_classes = (IsAuthenticatedWithProfileOrReadOnly,)
+    permission_classes = (IsAuthenticatedWithProfileOrReadOnly,
+                          HasSuggestionCreditOrIsStaffOrReadOnly,)
     filter_backends = (filters.OrderingFilter,
                        filters.SearchFilter,
                        SampleFilterBackend,)

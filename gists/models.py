@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Sentence(models.Model):
@@ -34,3 +35,14 @@ class Profile(models.Model):
     @property
     def trees(self):
         return set([s.tree for s in self.sentences.all()])
+
+    @property
+    def suggestion_credit(self):
+        base = settings.BASE_CREDIT
+        cost = settings.SUGGESTION_COST
+
+        parents = [s.parent for s in self.sentences.all()]
+        n_created = len([p for p in parents if p is None])
+        n_transformed = len(parents) - n_created
+
+        return base + (n_transformed // cost) - n_created
