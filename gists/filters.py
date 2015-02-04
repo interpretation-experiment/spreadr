@@ -10,7 +10,9 @@ class SampleFilterBackend(filters.BaseFilterBackend):
     is present.
     """
     def filter_queryset(self, request, queryset, view):
-        if request.QUERY_PARAMS.get('sample', None) == '':
+        is_sample = request.QUERY_PARAMS.get('sample')
+        if (is_sample is not None and
+                (is_sample.lower() == 'true' or is_sample == '')):
             return self.sample(request, queryset)
         else:
             return queryset
@@ -48,8 +50,10 @@ class UntouchedFilterBackend(filters.BaseFilterBackend):
                 or request.user.profile is None):
             return queryset
 
-        profile = request.user.profile
-        if request.QUERY_PARAMS.get('untouched', None) == '':
+        is_untouched = request.QUERY_PARAMS.get('untouched')
+        if (is_untouched is not None and
+                (is_untouched.lower() == 'true' or is_untouched == '')):
+            profile = request.user.profile
             return queryset.exclude(pk__in=[t.pk for t in profile.trees])
         else:
             return queryset
