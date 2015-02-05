@@ -90,27 +90,3 @@ class IsAuthenticatedWithProfileOrReadOnly(permissions.BasePermission,
             return True
 
         return self.is_authenticated_with_profile(request)
-
-
-class HasSuggestionCreditOrIsStaffOrReadOnly(permissions.BasePermission,
-                                             ProfilePermissionMixin):
-    """
-    Only allow staff or profiles with positive suggestion credit.
-    """
-
-    def has_permission(self, request, view):
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        # We need authentication, and a profile
-        if not self.is_authenticated_with_profile(request):
-            return False
-
-        # Staff can do what it wants
-        if request.user.is_staff:
-            return True
-
-        # Normal users must have suggestion credit
-        return request.user.profile.suggestion_credit > 0

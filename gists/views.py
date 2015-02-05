@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from rest_framework import viewsets, mixins, filters, generics
 from rest_framework.decorators import list_route
@@ -15,8 +16,7 @@ from gists.permissions import (IsAdminOrReadOnly,
                                IsAdminOrObjectHasSelfOrReadOnly,
                                IsAuthenticatedWithoutProfileOrReadOnly,
                                IsAuthenticatedWithProfile,
-                               IsAuthenticatedWithProfileOrReadOnly,
-                               HasSuggestionCreditOrIsStaffOrReadOnly)
+                               IsAuthenticatedWithProfileOrReadOnly,)
 
 
 class APIRoot(generics.GenericAPIView):
@@ -54,8 +54,7 @@ class SentenceViewSet(mixins.CreateModelMixin,
     """
     queryset = Sentence.objects.all()
     serializer_class = SentenceSerializer
-    permission_classes = (IsAuthenticatedWithProfileOrReadOnly,
-                          HasSuggestionCreditOrIsStaffOrReadOnly,)
+    permission_classes = (IsAuthenticatedWithProfileOrReadOnly,)
     filter_backends = (filters.OrderingFilter,
                        filters.SearchFilter,
                        SampleFilterBackend,)
@@ -75,9 +74,18 @@ class SentenceViewSet(mixins.CreateModelMixin,
             return tree
 
     def perform_create(self, serializer):
+        profile = self.request.user.profile
         parent = serializer.validated_data.get('parent')
-        tree = self.obtain_free_tree() if parent is None else parent.tree
-        serializer.save(profile=self.request.user.profile, tree=tree)
+        if parent is None:
+            # We're creating a new tree, check we're staff
+            # or have suggestion credit
+            if not (profile.user.is_staff or profile.suggestion_credit > 0):
+                raise PermissionDenied
+            tree = self.obtain_free_tree()
+        else:
+            tree = parent.tree
+
+        serializer.save(profile=profile, tree=tree)
 
 
 class ProfileViewSet(mixins.CreateModelMixin,
