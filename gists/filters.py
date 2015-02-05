@@ -54,6 +54,6 @@ class UntouchedFilterBackend(filters.BaseFilterBackend):
         if (is_untouched is not None and
                 (is_untouched.lower() == 'true' or is_untouched == '')):
             profile = request.user.profile
-            return queryset.exclude(pk__in=[t.pk for t in profile.trees])
+            return queryset.exclude(pk__in=[t.pk for t in profile.all_trees])
         else:
             return queryset

@@ -5,6 +5,16 @@ from gists.models import Sentence, Tree, Profile
 
 
 class TreeSerializer(serializers.ModelSerializer):
+    root_url = serializers.HyperlinkedRelatedField(
+        source='root',
+        view_name='sentence-detail',
+        read_only=True
+    )
+    profile_url = serializers.HyperlinkedRelatedField(
+        source='profile',
+        view_name='profile-detail',
+        read_only=True
+    )
     sentences = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
@@ -46,6 +56,8 @@ class TreeSerializer(serializers.ModelSerializer):
         model = Tree
         fields = (
             'id', 'url',
+            'root', 'root_url',
+            'profile', 'profile_url',
             'sentences', 'sentence_urls',
             'profiles', 'profile_urls',
             'untouched',
@@ -110,12 +122,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         view_name='user-detail',
         read_only=True
     )
-    trees = serializers.PrimaryKeyRelatedField(
+    created_trees = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
     )
-    tree_urls = serializers.HyperlinkedRelatedField(
-        source='trees',
+    created_trees_urls = serializers.HyperlinkedRelatedField(
+        source='created_trees',
+        view_name='tree-detail',
+        many=True,
+        read_only=True
+    )
+    all_trees = serializers.PrimaryKeyRelatedField(
+        many=True,
+        read_only=True
+    )
+    all_trees_urls = serializers.HyperlinkedRelatedField(
+        source='all_trees',
         view_name='tree-detail',
         many=True,
         read_only=True
@@ -137,7 +159,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'id', 'url',
             'created',
             'user', 'user_url', 'user_username',
-            'trees', 'tree_urls',
+            'created_trees', 'created_trees_urls',
+            'all_trees', 'all_trees_urls',
             'sentences', 'sentence_urls',
             'suggestion_credit',
         )

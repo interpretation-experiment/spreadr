@@ -63,15 +63,16 @@ class SentenceViewSet(mixins.CreateModelMixin,
     search_fields = ('text',)
 
     @classmethod
-    def obtain_free_tree(cls):
+    def obtain_free_tree(cls, profile):
         trees = Tree.objects.annotate(n_sentences=Count('sentences'))
         free_trees = trees.filter(n_sentences=0)
         if free_trees.count() > 0:
-            return free_trees.first()
+            free_tree = free_trees.first()
+            free_tree.profile = profile
+            free_tree.save()
+            return free_tree
         else:
-            tree = Tree()
-            tree.save()
-            return tree
+            return profile.created_trees.create()
 
     def perform_create(self, serializer):
         profile = self.request.user.profile
@@ -81,11 +82,13 @@ class SentenceViewSet(mixins.CreateModelMixin,
             # or have suggestion credit
             if not (profile.user.is_staff or profile.suggestion_credit > 0):
                 raise PermissionDenied
-            tree = self.obtain_free_tree()
+            tree = self.obtain_free_tree(profile)
+            serializer.save(profile=profile, tree=tree)
+            tree.root = serializer.instance
+            tree.save()
         else:
             tree = parent.tree
-
-        serializer.save(profile=profile, tree=tree)
+            serializer.save(profile=profile, tree=tree)
 
 
 class ProfileViewSet(mixins.CreateModelMixin,

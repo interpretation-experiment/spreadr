@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Profile',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
@@ -26,10 +26,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Sentence',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('text', models.CharField(max_length=5000)),
-                ('parent', models.ForeignKey(to='gists.Sentence', null=True, related_name='children')),
+                ('parent', models.ForeignKey(to='gists.Sentence', related_name='children', null=True)),
                 ('profile', models.ForeignKey(related_name='sentences', to='gists.Profile')),
             ],
             options={
@@ -40,7 +40,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tree',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('profile', models.ForeignKey(related_name='created_trees', to='gists.Profile')),
+                ('root', models.OneToOneField(to='gists.Sentence', related_name='tree_as_root', null=True)),
             ],
             options={
             },
