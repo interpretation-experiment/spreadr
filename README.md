@@ -7,7 +7,8 @@ Get up and started
 ------------------
 
 ```shell
-mkvirtualenv -p python3 gistr-backend
+sudo apt-get install python3-dev
+mkvirtualenv -p $(which python3) spreadr
 pip install -r requirements.txt
 python manage.py runserver
 ```
