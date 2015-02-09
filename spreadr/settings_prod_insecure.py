@@ -18,4 +18,4 @@ ALLOWED_HOSTS = [
 ]
 
 # Static files
-STATIC_ROOT = 'static'
+STATIC_ROOT = '/var/www/spreadr/static'
