@@ -4,5 +4,8 @@
 # Python3 caches
 __pycache__/
 
+# Django static files
+static/
+
 # Virtualenv
 .venv
