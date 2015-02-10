@@ -47,14 +47,14 @@ INSTALLED_APPS = (
     'allauth.account',
     'rest_auth.registration',
 
-    #'corsheaders',
+    'corsheaders',
     'glue',
     'gists',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
-    #'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -86,6 +86,10 @@ REST_FRAMEWORK = {
 }
 
 CORS_ORIGIN_WHITELIST = (
+    'gistr.io',
+    'demo.gistr.io',
+    # Firefox OS app
+    'fd2ab894-4080-4c7c-ad5c-585e80504743',
 )
 
 REST_AUTH_SERIALIZERS = {
