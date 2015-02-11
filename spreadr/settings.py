@@ -91,7 +91,7 @@ CORS_ORIGIN_WHITELIST = (
     # Firefox OS app
     'fd2ab894-4080-4c7c-ad5c-585e80504743',
     # Android APK of Firefox OS app
-    'ce008662-7e4a-4293-9e50-3a535e925553',
+    '{ce008662-7e4a-4293-9e50-3a535e925553}',
 )
 
 REST_AUTH_SERIALIZERS = {
