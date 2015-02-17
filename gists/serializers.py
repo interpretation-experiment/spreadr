@@ -28,16 +28,6 @@ class TreeSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
-    profiles = serializers.PrimaryKeyRelatedField(
-        many=True,
-        read_only=True
-    )
-    profile_urls = serializers.HyperlinkedRelatedField(
-        source='profiles',
-        view_name='profile-detail',
-        many=True,
-        read_only=True
-    )
     untouched = serializers.SerializerMethodField()
 
     def get_untouched(self, obj):
@@ -53,7 +43,8 @@ class TreeSerializer(serializers.ModelSerializer):
             return True
 
         profile = request.user.profile
-        return profile not in obj.profiles
+        return profile.pk not in obj.sentences.values_list('profile',
+                                                           flat=True)
 
     class Meta:
         model = Tree
@@ -62,7 +53,6 @@ class TreeSerializer(serializers.ModelSerializer):
             'root', 'root_url', 'root_language',
             'profile', 'profile_url',
             'sentences', 'sentence_urls',
-            'profiles', 'profile_urls',
             'untouched',
         )
 
@@ -135,16 +125,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
-    all_trees = serializers.PrimaryKeyRelatedField(
-        many=True,
-        read_only=True
-    )
-    all_trees_urls = serializers.HyperlinkedRelatedField(
-        source='all_trees',
-        view_name='tree-detail',
-        many=True,
-        read_only=True
-    )
     sentences = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
@@ -164,7 +144,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             'created',
             'user', 'user_url', 'user_username',
             'created_trees', 'created_trees_urls',
-            'all_trees', 'all_trees_urls',
             'sentences', 'sentence_urls',
             'suggestion_credit',
             'mothertongue',

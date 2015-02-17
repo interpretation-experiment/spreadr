@@ -1,7 +1,10 @@
 from random import sample
 
 from rest_framework import filters
+import django_filters
 from django.conf import settings
+
+from gists.models import Tree, LANGUAGE_CHOICES
 
 
 class SampleFilterBackend(filters.BaseFilterBackend):
@@ -35,6 +38,15 @@ class SampleFilterBackend(filters.BaseFilterBackend):
         return instance.filter(pk__in=sampled_pks)
 
 
+class TreeFilter(django_filters.FilterSet):
+    root_language = django_filters.ChoiceFilter(name='root__language',
+                                                choices=LANGUAGE_CHOICES)
+
+    class Meta:
+        model = Tree
+        fields = ('root_language',)
+
+
 class UntouchedFilterBackend(filters.BaseFilterBackend):
     """
     Filter out trees the user has participated in if the `unread` keyword
@@ -54,6 +66,7 @@ class UntouchedFilterBackend(filters.BaseFilterBackend):
         if (is_untouched is not None and
                 (is_untouched.lower() == 'true' or is_untouched == '')):
             profile = request.user.profile
-            return queryset.exclude(pk__in=[t.pk for t in profile.all_trees])
+            return queryset.exclude(
+                pk__in=profile.sentences.values_list('tree', flat=True))
         else:
             return queryset

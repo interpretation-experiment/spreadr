@@ -2,13 +2,13 @@ from django.contrib.auth.models import User
 from django.db.models import Count
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
-from rest_framework import viewsets, mixins, generics
+from rest_framework import viewsets, mixins, generics, filters
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
 
-from gists.filters import SampleFilterBackend, UntouchedFilterBackend
+from gists.filters import SampleFilterBackend, UntouchedFilterBackend, TreeFilter
 from gists.models import Sentence, Tree, Profile
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
@@ -41,7 +41,9 @@ class TreeViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Tree.objects.all()
     serializer_class = TreeSerializer
-    filter_backends = (UntouchedFilterBackend,
+    filter_class = TreeFilter
+    filter_backends = (filters.DjangoFilterBackend,
+                       UntouchedFilterBackend,
                        SampleFilterBackend,)
 
 
@@ -56,8 +58,6 @@ class SentenceViewSet(mixins.CreateModelMixin,
     serializer_class = SentenceSerializer
     permission_classes = (IsAuthenticatedWithProfileOrReadOnly,)
     ordering = ('-created',)
-    ordering_fields = ('created',)
-    search_fields = ('text',)
 
     @classmethod
     def obtain_free_tree(cls, profile):

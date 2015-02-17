@@ -39,19 +39,11 @@ class Tree(models.Model):
                                 null=True)
     profile = models.ForeignKey('Profile', related_name='created_trees')
 
-    @property
-    def profiles(self):
-        return set([s.profile for s in self.sentences.all()])
-
 
 class Profile(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     user = models.OneToOneField('auth.User')
     mothertongue = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
-
-    @property
-    def all_trees(self):
-        return set([s.tree for s in self.sentences.all()])
 
     @property
     def suggestion_credit(self):
