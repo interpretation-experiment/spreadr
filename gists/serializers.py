@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from gists.models import Sentence, Tree, Profile
+from gists.models import Sentence, Tree, Profile, LANGUAGE_CHOICES
 
 
 class TreeSerializer(serializers.ModelSerializer):
@@ -9,6 +9,9 @@ class TreeSerializer(serializers.ModelSerializer):
         source='root',
         view_name='sentence-detail',
         read_only=True
+    )
+    root_language = serializers.ReadOnlyField(
+        source='root.language'
     )
     profile_url = serializers.HyperlinkedRelatedField(
         source='profile',
@@ -56,7 +59,7 @@ class TreeSerializer(serializers.ModelSerializer):
         model = Tree
         fields = (
             'id', 'url',
-            'root', 'root_url',
+            'root', 'root_url', 'root_language',
             'profile', 'profile_url',
             'sentences', 'sentence_urls',
             'profiles', 'profile_urls',
@@ -109,7 +112,7 @@ class SentenceSerializer(serializers.ModelSerializer):
             'profile', 'profile_url', 'profile_username',
             'parent', 'parent_url',
             'children', 'children_urls',
-            'text',
+            'text', 'language',
         )
 
 
@@ -152,6 +155,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+    mothertongue = serializers.ChoiceField(choices=LANGUAGE_CHOICES)
 
     class Meta:
         model = Profile
@@ -163,6 +167,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'all_trees', 'all_trees_urls',
             'sentences', 'sentence_urls',
             'suggestion_credit',
+            'mothertongue',
         )
         read_only_fields = (
             'user', 'suggestion_credit',
