@@ -19,4 +19,7 @@ class TreeFilter(django_filters.FilterSet):
 
     class Meta:
         model = Tree
-        fields = ('root_language',)
+        fields = (
+            'root_language',
+            'untouched_by_profile',
+        )

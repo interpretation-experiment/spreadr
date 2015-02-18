@@ -17,6 +17,7 @@ class Sentence(models.Model):
     tree = models.ForeignKey('Tree', related_name='sentences')
     profile = models.ForeignKey('Profile', related_name='sentences')
     parent = models.ForeignKey('Sentence', related_name='children', null=True)
+    tree_as_root = models.OneToOneField('Tree', related_name='root', null=True)
     text = models.CharField(max_length=5000)
     language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
 
@@ -36,14 +37,8 @@ class Sentence(models.Model):
 class Tree(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     profiles = models.ManyToManyField('Profile', through='Sentence',
+                                      through_fields=('tree', 'profile'),
                                       related_name='trees')
-
-    @property
-    def root(self):
-        if self.sentences.count() == 0:
-            return None
-        else:
-            return self.sentences.get(parent=None)
 
 
 class Profile(models.Model):

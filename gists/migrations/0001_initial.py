@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Profile',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('mothertongue', models.CharField(choices=[('german', 'Deutsch'), ('english', 'English'), ('spanish', 'Español'), ('french', 'Français'), ('italian', 'Italiano'), ('other', 'Other')], max_length=100)),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
@@ -27,12 +27,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Sentence',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('text', models.CharField(max_length=5000)),
                 ('language', models.CharField(choices=[('german', 'Deutsch'), ('english', 'English'), ('spanish', 'Español'), ('french', 'Français'), ('italian', 'Italiano'), ('other', 'Other')], max_length=100)),
                 ('parent', models.ForeignKey(null=True, related_name='children', to='gists.Sentence')),
-                ('profile', models.ForeignKey(to='gists.Profile', related_name='sentences')),
+                ('profile', models.ForeignKey(related_name='sentences', to='gists.Profile')),
             ],
             options={
                 'ordering': ('-created',),
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tree',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('profiles', models.ManyToManyField(related_name='trees', through='gists.Sentence', to='gists.Profile')),
             ],
@@ -53,7 +53,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sentence',
             name='tree',
-            field=models.ForeignKey(to='gists.Tree', related_name='sentences'),
+            field=models.ForeignKey(related_name='sentences', to='gists.Tree'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='sentence',
+            name='tree_as_root',
+            field=models.OneToOneField(null=True, related_name='root', to='gists.Tree'),
             preserve_default=True,
         ),
     ]
