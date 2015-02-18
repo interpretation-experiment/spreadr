@@ -40,11 +40,19 @@ class Tree(models.Model):
                                       through_fields=('tree', 'profile'),
                                       related_name='trees')
 
+    @property
+    def distinct_profiles(self):
+        return self.profiles.distinct()
+
 
 class Profile(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     user = models.OneToOneField('auth.User')
     mothertongue = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
+
+    @property
+    def distinct_trees(self):
+        return self.trees.distinct()
 
     @property
     def suggestion_credit(self):

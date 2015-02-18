@@ -53,6 +53,17 @@ class TreeSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+    profiles = serializers.PrimaryKeyRelatedField(
+        source='distinct_profiles',
+        many=True,
+        read_only=True
+    )
+    network_edges = serializers.SerializerMethodField()
+
+    def get_network_edges(self, obj):
+        edges = obj.sentences.values('pk', 'children')
+        return [{'source': e['pk'], 'target': e['children']} for e in edges
+                if e['pk'] is not None and e['children'] is not None]
 
     class Meta:
         model = Tree
@@ -61,6 +72,7 @@ class TreeSerializer(serializers.ModelSerializer):
             'root',
             'sentences',
             'profiles',
+            'network_edges',
         )
 
 
@@ -74,6 +86,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True
     )
     trees = serializers.PrimaryKeyRelatedField(
+        source='distinct_trees',
         many=True,
         read_only=True
     )
@@ -85,7 +98,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     untouched_trees_count = serializers.SerializerMethodField()
 
     def get_untouched_trees_count(self, obj):
-        return Tree.objects.count() - obj.trees.count()
+        return Tree.objects.count() - obj.distinct_trees.count()
 
     class Meta:
         model = Profile
