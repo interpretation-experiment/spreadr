@@ -5,18 +5,8 @@ from gists.models import Sentence, Tree, Profile, LANGUAGE_CHOICES
 
 
 class TreeSerializer(serializers.ModelSerializer):
-    root_url = serializers.HyperlinkedRelatedField(
-        source='root',
-        view_name='sentence-detail',
-        read_only=True
-    )
     root_language = serializers.ReadOnlyField(
         source='root.language'
-    )
-    profile_url = serializers.HyperlinkedRelatedField(
-        source='profile',
-        view_name='profile-detail',
-        read_only=True
     )
     sentences = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -28,32 +18,20 @@ class TreeSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
-    untouched = serializers.SerializerMethodField()
-
-    def get_untouched(self, obj):
-        request = self.context['request']
-
-        # Anonymous users have read nothing
-        if not request.user.is_authenticated():
-            return True
-
-        # Users without a profile have read nothing
-        if (not hasattr(request.user, 'profile')
-                or request.user.profile is None):
-            return True
-
-        profile = request.user.profile
-        return profile.pk not in obj.sentences.values_list('profile',
-                                                           flat=True)
+    profile_urls = serializers.HyperlinkedRelatedField(
+        source='profiles',
+        view_name='profile-detail',
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = Tree
         fields = (
             'id', 'url',
-            'root', 'root_url', 'root_language',
-            'profile', 'profile_url',
+            'root_language',
             'sentences', 'sentence_urls',
-            'untouched',
+            'profiles', 'profile_urls',
         )
 
 
@@ -115,12 +93,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         view_name='user-detail',
         read_only=True
     )
-    created_trees = serializers.PrimaryKeyRelatedField(
+    trees = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
     )
-    created_trees_urls = serializers.HyperlinkedRelatedField(
-        source='created_trees',
+    tree_urls = serializers.HyperlinkedRelatedField(
+        source='trees',
         view_name='tree-detail',
         many=True,
         read_only=True
@@ -143,7 +121,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'id', 'url',
             'created',
             'user', 'user_url', 'user_username',
-            'created_trees', 'created_trees_urls',
+            'trees', 'tree_urls',
             'sentences', 'sentence_urls',
             'suggestion_credit',
             'mothertongue',

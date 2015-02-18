@@ -28,16 +28,22 @@ class Sentence(models.Model):
         length = len(self.text)
         trunc, post = ((max_length - 3, '...') if length > max_length
                        else (length, ''))
-        string = "<Sentence {} by '{}': '{}'>".format(
+        string = "{} by '{}': '{}'".format(
             self.id, self.profile.user.username, self.text[:trunc] + post)
         return string
 
 
 class Tree(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    root = models.OneToOneField('Sentence', related_name='tree_as_root',
-                                null=True)
-    profile = models.ForeignKey('Profile', related_name='created_trees')
+    profiles = models.ManyToManyField('Profile', through='Sentence',
+                                      related_name='trees')
+
+    @property
+    def root(self):
+        if self.sentences.count() == 0:
+            return None
+        else:
+            return self.sentences.get(parent=None)
 
 
 class Profile(models.Model):
@@ -50,7 +56,7 @@ class Profile(models.Model):
         base = settings.BASE_CREDIT
         cost = settings.SUGGESTION_COST
 
-        n_created = self.created_trees.count()
+        n_created = self.sentences.filter(parent=None).count()
         n_transformed = self.sentences.count() - n_created
 
         return base + (n_transformed // cost) - n_created

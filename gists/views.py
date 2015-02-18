@@ -60,32 +60,24 @@ class SentenceViewSet(mixins.CreateModelMixin,
     ordering = ('-created',)
 
     @classmethod
-    def obtain_free_tree(cls, profile):
+    def obtain_free_tree(cls):
         trees = Tree.objects.annotate(n_sentences=Count('sentences'))
-        free_trees = trees.filter(n_sentences=0)
-        if free_trees.count() > 0:
-            free_tree = free_trees.first()
-            free_tree.profile = profile
-            free_tree.save()
-            return free_tree
-        else:
-            return profile.created_trees.create()
+        return trees.filter(n_sentences=0).first() or Tree.objects.create()
 
     def perform_create(self, serializer):
         profile = self.request.user.profile
+
         parent = serializer.validated_data.get('parent')
         if parent is None:
             # We're creating a new tree, check we're staff
             # or have suggestion credit
             if not (profile.user.is_staff or profile.suggestion_credit > 0):
                 raise PermissionDenied
-            tree = self.obtain_free_tree(profile)
-            serializer.save(profile=profile, tree=tree)
-            tree.root = serializer.instance
-            tree.save()
+            tree = self.obtain_free_tree()
         else:
             tree = parent.tree
-            serializer.save(profile=profile, tree=tree)
+
+        serializer.save(profile=profile, tree=tree)
 
 
 class ProfileViewSet(mixins.CreateModelMixin,
