@@ -51,10 +51,11 @@ class ProfilePermissionMixin:
                      or request.user.profile is None))
 
 
-class IsAuthenticatedWithoutProfileOrReadOnly(permissions.BasePermission,
-                                              ProfilePermissionMixin):
+class IsAuthenticatedWithoutProfileOrReadOrUpdateOnly(
+        permissions.BasePermission, ProfilePermissionMixin):
     """
-    Only allow authenticated users that have no profile attached.
+    Only allow authenticated users that have no profile attached to create,
+    the rest can write and update.
     """
 
     def has_permission(self, request, view):
@@ -63,7 +64,14 @@ class IsAuthenticatedWithoutProfileOrReadOnly(permissions.BasePermission,
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        return self.is_authenticated_without_profile(request)
+        # You need to be authenticated to do anything else than safe stuff
+        if not request.user.is_authenticated():
+            return False
+
+        # If you have no profile, you can create. If you have one,
+        # you can only update it.
+        return (self.is_authenticated_without_profile(request)
+                or request.method in ['PUT', 'PATCH'])
 
 
 class IsAuthenticatedWithProfile(permissions.BasePermission,

@@ -14,7 +14,7 @@ from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
 from gists.permissions import (IsAdminOrReadOnly,
                                IsAdminOrObjectHasSelfOrReadOnly,
-                               IsAuthenticatedWithoutProfileOrReadOnly,
+                               IsAuthenticatedWithoutProfileOrReadOrUpdateOnly,
                                IsAuthenticatedWithProfile,
                                IsAuthenticatedWithProfileOrReadOnly,)
 
@@ -91,7 +91,7 @@ class ProfileViewSet(mixins.CreateModelMixin,
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = (IsAuthenticatedWithoutProfileOrReadOnly,
+    permission_classes = (IsAuthenticatedWithoutProfileOrReadOrUpdateOnly,
                           IsAdminOrObjectHasSelfOrReadOnly,)
     ordering = ('user__username',)
 
