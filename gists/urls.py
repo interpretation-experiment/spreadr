@@ -15,6 +15,7 @@ router.register(r'profiles', views.ProfileViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
+    url(r'^meta/$', views.Meta.as_view(), name='meta'),
     url(r'^$', views.APIRoot.as_view()),
 ]
 

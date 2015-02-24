@@ -9,7 +9,7 @@ from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
 
 from gists.filters import TreeFilter
-from gists.models import Sentence, Tree, Profile
+from gists.models import Sentence, Tree, Profile, LANGUAGE_CHOICES
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
 from gists.permissions import (IsAdminOrReadOnly,
@@ -31,7 +31,19 @@ class APIRoot(generics.GenericAPIView):
             'profiles': reverse('profile-list', request=request,
                                 format=format),
             'users': reverse('user-list', request=request, format=format),
+            'meta': reverse('meta', request=request, format=format),
+        })
+
+
+class Meta(generics.GenericAPIView):
+    """
+    Meta information about the server.
+    """
+    def get(self, request, format=None):
+        return Response({
             'version': settings.VERSION,
+            'supported_languages': map(lambda l: {'name': l[0], 'label': l[1]},
+                                       LANGUAGE_CHOICES),
         })
 
 
