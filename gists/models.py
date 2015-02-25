@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 
 
+DEFAULT_LANGUAGE = 'english'
+OTHER_LANGUAGE = 'other'
 LANGUAGE_CHOICES = sorted(
     [('french', 'Français'),
      ('english', 'English'),
