@@ -9,7 +9,8 @@ from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
 
 from gists.filters import TreeFilter
-from gists.models import Sentence, Tree, Profile, LANGUAGE_CHOICES
+from gists.models import (Sentence, Tree, Profile, LANGUAGE_CHOICES,
+                          OTHER_LANGUAGE, DEFAULT_LANGUAGE)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
 from gists.permissions import (IsAdminOrReadOnly,
@@ -44,6 +45,8 @@ class Meta(generics.GenericAPIView):
             'version': settings.VERSION,
             'supported_languages': map(lambda l: {'name': l[0], 'label': l[1]},
                                        LANGUAGE_CHOICES),
+            'other_language': OTHER_LANGUAGE,
+            'default_language': DEFAULT_LANGUAGE,
         })
 
 
