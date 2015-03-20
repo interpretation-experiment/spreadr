@@ -34,6 +34,9 @@ class SentenceSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+    children_count = serializers.ReadOnlyField(
+        source='children.count'
+    )
 
     class Meta:
         model = Sentence
@@ -43,7 +46,7 @@ class SentenceSerializer(serializers.ModelSerializer):
             'tree', 'tree_url',
             'profile', 'profile_url', 'profile_username',
             'parent', 'parent_url',
-            'children',
+            'children', 'children_count',
             'text', 'language',
         )
 
