@@ -63,6 +63,9 @@ class TreeSerializer(serializers.ModelSerializer):
         read_only=True
     )
     network_edges = serializers.SerializerMethodField()
+    sentences_count = serializers.ReadOnlyField(
+        source='sentences.count'
+    )
 
     def get_network_edges(self, obj):
         edges = obj.sentences.values('pk', 'children')
@@ -74,7 +77,7 @@ class TreeSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'url',
             'root',
-            'sentences',
+            'sentences', 'sentences_count',
             'profiles',
             'network_edges',
         )
