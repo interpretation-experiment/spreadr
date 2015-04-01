@@ -89,6 +89,7 @@ class Profile(models.Model):
 
     @property
     def next_credit_in(self):
+        config = GistsConfiguration.get_solo()
         cost = config.tree_cost
 
         n_created = self.sentences.filter(parent=None).count()
