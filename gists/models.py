@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.conf import settings
+import networkx as nx
 
 from solo.models import SingletonModel
 
@@ -65,6 +66,27 @@ class Tree(models.Model):
     profiles = models.ManyToManyField('Profile', through='Sentence',
                                       through_fields=('tree', 'profile'),
                                       related_name='trees')
+
+    @property
+    def network_edges(self):
+        edges = self.sentences.values('pk', 'children')
+        return [{'source': e['pk'], 'target': e['children']} for e in edges
+                if e['pk'] is not None and e['children'] is not None]
+
+    @property
+    def shortest_branch_depth(self):
+        # No root or nothing but root? Return fast
+        sentences_count = self.sentences.count()
+        if sentences_count <= 1:
+            return sentences_count
+
+        edges = [(e['source'], e['target']) for e in self.network_edges]
+        graph = nx.DiGraph(edges)
+        heads = self.root.children.values_list('pk', flat=True)
+        all_depths = [nx.single_source_shortest_path_length(graph, h)
+                      for h in heads]
+        branch_depths = [1 + max(depths.values()) for depths in all_depths]
+        return min(branch_depths)
 
     @property
     def distinct_profiles(self):

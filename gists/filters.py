@@ -17,6 +17,10 @@ class TreeFilter(django_filters.FilterSet):
         action='filter_branches_count_gte')
     branches_count_lte = django_filters.MethodFilter(
         action='filter_branches_count_lte')
+    shortest_branch_depth_gte = django_filters.MethodFilter(
+        action='filter_shortest_branch_depth_gte')
+    shortest_branch_depth_lte = django_filters.MethodFilter(
+        action='filter_shortest_branch_depth_lte')
 
     def filter_untouched_by_profile(self, queryset, value):
         try:
@@ -41,6 +45,9 @@ class TreeFilter(django_filters.FilterSet):
             return queryset
 
     def filter_branches_count(self, queryset, value, tipe):
+        if tipe not in ['lte', 'gte']:
+            raise ValueError("Unknown comparison type: '{}'".format(tipe))
+
         try:
             ivalue = int(value)
         except ValueError:
@@ -54,6 +61,29 @@ class TreeFilter(django_filters.FilterSet):
 
     def filter_branches_count_lte(self, queryset, value):
         return self.filter_branches_count(queryset, value, 'lte')
+
+    def filter_shortest_branch_depth(self, queryset, value, tipe):
+        if tipe == 'lte':
+            condition = lambda d: d <= ivalue
+        elif tipe == 'gte':
+            condition = lambda d: d >= ivalue
+        else:
+            raise ValueError("Unknown comparison type: '{}'".format(tipe))
+
+        try:
+            ivalue = int(value)
+        except ValueError:
+            return queryset
+
+        pks = [tree.pk for tree in queryset
+               if condition(tree.shortest_branch_depth)]
+        return queryset.filter(pk__in=pks)
+
+    def filter_shortest_branch_depth_gte(self, queryset, value):
+        return self.filter_shortest_branch_depth(queryset, value, 'gte')
+
+    def filter_shortest_branch_depth_lte(self, queryset, value):
+        return self.filter_shortest_branch_depth(queryset, value, 'lte')
 
     class Meta:
         model = Tree
