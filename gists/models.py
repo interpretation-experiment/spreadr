@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.conf import settings
 
 from solo.models import SingletonModel
@@ -17,11 +18,14 @@ LANGUAGE_CHOICES = sorted(
 
 
 class GistsConfiguration(SingletonModel):
-    base_credit = models.IntegerField(default=settings.DEFAULT_BASE_CREDIT)
-    target_branch_count = models.IntegerField(
-        default=settings.DEFAULT_TARGET_BRANCH_COUNT)
-    target_branch_length = models.IntegerField(
-        default=settings.DEFAULT_TARGET_BRANCH_LENGTH)
+    base_credit = models.PositiveIntegerField(
+        default=settings.DEFAULT_BASE_CREDIT)
+    target_branch_count = models.PositiveIntegerField(
+        default=settings.DEFAULT_TARGET_BRANCH_COUNT,
+        validators=[MinValueValidator(1)])
+    target_branch_length = models.PositiveIntegerField(
+        default=settings.DEFAULT_TARGET_BRANCH_LENGTH,
+        validators=[MinValueValidator(2)])
 
     @property
     def tree_cost(self):
