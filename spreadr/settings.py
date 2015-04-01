@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'allauth.account',
     'rest_auth.registration',
 
+    'solo',
     'corsheaders',
     'glue',
     'gists',
@@ -96,10 +97,11 @@ REST_AUTH_SERIALIZERS = {
 OLD_PASSWORD_FIELD_ENABLED = True
 
 
-# Gists balance settings
+# Gists configuration
 
-BASE_CREDIT = 5
-SUGGESTION_COST = 10
+DEFAULT_BASE_CREDIT = 2
+DEFAULT_TARGET_BRANCH_COUNT = 5
+DEFAULT_TARGET_BRANCH_LENGTH = 10
 
 
 # Database

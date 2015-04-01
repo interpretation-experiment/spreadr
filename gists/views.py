@@ -9,8 +9,8 @@ from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
 
 from gists.filters import TreeFilter
-from gists.models import (Sentence, Tree, Profile, LANGUAGE_CHOICES,
-                          OTHER_LANGUAGE, DEFAULT_LANGUAGE)
+from gists.models import (Sentence, Tree, Profile, GistsConfiguration,
+                          LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
 from gists.permissions import (IsAdminOrReadOnly,
@@ -41,14 +41,17 @@ class Meta(generics.GenericAPIView):
     Meta information about the server.
     """
     def get(self, request, format=None):
+        config = GistsConfiguration.get_solo()
         return Response({
             'version': settings.VERSION,
             'supported_languages': map(lambda l: {'name': l[0], 'label': l[1]},
                                        LANGUAGE_CHOICES),
             'other_language': OTHER_LANGUAGE,
             'default_language': DEFAULT_LANGUAGE,
-            'base_credit': settings.BASE_CREDIT,
-            'suggestion_cost': settings.SUGGESTION_COST,
+            'base_credit': config.base_credit,
+            'target_branch_count': config.target_branch_count,
+            'target_branch_length': config.target_branch_length,
+            'tree_cost': config.tree_cost,
         })
 
 

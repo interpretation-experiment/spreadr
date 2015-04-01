@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 
+from solo.models import SingletonModel
+
 
 DEFAULT_LANGUAGE = 'english'
 OTHER_LANGUAGE = 'other'
@@ -12,6 +14,24 @@ LANGUAGE_CHOICES = sorted(
      ('german', 'German'),
      ('other', 'Other')],
     key=lambda l: l[1])
+
+
+class GistsConfiguration(SingletonModel):
+    base_credit = models.IntegerField(default=settings.DEFAULT_BASE_CREDIT)
+    target_branch_count = models.IntegerField(
+        default=settings.DEFAULT_TARGET_BRANCH_COUNT)
+    target_branch_length = models.IntegerField(
+        default=settings.DEFAULT_TARGET_BRANCH_LENGTH)
+
+    @property
+    def tree_cost(self):
+        return self.target_branch_count * self.target_branch_length
+
+    def __unicode__(self):
+        return "Gists Configuration"
+
+    class Meta:
+        verbose_name = "Gists Configuration"
 
 
 class Sentence(models.Model):
@@ -58,8 +78,9 @@ class Profile(models.Model):
 
     @property
     def suggestion_credit(self):
-        base = settings.BASE_CREDIT
-        cost = settings.SUGGESTION_COST
+        config = GistsConfiguration.get_solo()
+        base = config.base_credit
+        cost = config.tree_cost
 
         n_created = self.sentences.filter(parent=None).count()
         n_transformed = self.sentences.count() - n_created
@@ -68,7 +89,7 @@ class Profile(models.Model):
 
     @property
     def next_credit_in(self):
-        cost = settings.SUGGESTION_COST
+        cost = config.tree_cost
 
         n_created = self.sentences.filter(parent=None).count()
         n_transformed = self.sentences.count() - n_created

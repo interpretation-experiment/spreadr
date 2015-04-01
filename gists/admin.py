@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from solo.admin import SingletonModelAdmin
+from gists.models import GistsConfiguration
+
+
+admin.site.register(GistsConfiguration, SingletonModelAdmin)
