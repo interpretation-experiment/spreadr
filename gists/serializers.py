@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+import networkx as nx
 
 from gists.models import (Sentence, Tree, Profile, LANGUAGE_CHOICES,
                           OTHER_LANGUAGE, DEFAULT_LANGUAGE)
@@ -57,20 +58,39 @@ class TreeSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+    sentences_count = serializers.ReadOnlyField(
+        source='sentences.count'
+    )
     profiles = serializers.PrimaryKeyRelatedField(
         source='distinct_profiles',
         many=True,
         read_only=True
     )
     network_edges = serializers.SerializerMethodField()
-    sentences_count = serializers.ReadOnlyField(
-        source='sentences.count'
+    branches_count = serializers.ReadOnlyField(
+        source='root.children.count'
     )
+    shortest_branch_depth = serializers.SerializerMethodField()
 
     def get_network_edges(self, obj):
         edges = obj.sentences.values('pk', 'children')
         return [{'source': e['pk'], 'target': e['children']} for e in edges
                 if e['pk'] is not None and e['children'] is not None]
+
+    def get_shortest_branch_depth(self, obj):
+        # No root or nothing but root? Return fast
+        sentences_count = obj.sentences.count()
+        if sentences_count <= 1:
+            return sentences_count
+
+        edges = [(e['source'], e['target'])
+                 for e in self.get_network_edges(obj)]
+        graph = nx.DiGraph(edges)
+        heads = obj.root.children.values_list('pk', flat=True)
+        all_depths = [nx.single_source_shortest_path_length(graph, h)
+                      for h in heads]
+        branch_depths = [1 + max(depths.values()) for depths in all_depths]
+        return min(branch_depths)
 
     class Meta:
         model = Tree
@@ -80,6 +100,7 @@ class TreeSerializer(serializers.ModelSerializer):
             'sentences', 'sentences_count',
             'profiles',
             'network_edges',
+            'branches_count', 'shortest_branch_depth',
         )
 
 

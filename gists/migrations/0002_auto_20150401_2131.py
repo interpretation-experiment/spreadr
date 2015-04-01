@@ -15,10 +15,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GistsConfiguration',
             fields=[
-                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('base_credit', models.PositiveIntegerField(default=2)),
-                ('target_branch_count', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)], default=5)),
-                ('target_branch_length', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(2)], default=10)),
+                ('target_branch_count', models.PositiveIntegerField(default=5, validators=[django.core.validators.MinValueValidator(1)])),
+                ('target_branch_depth', models.PositiveIntegerField(default=10, validators=[django.core.validators.MinValueValidator(2)])),
             ],
             options={
                 'verbose_name': 'Gists Configuration',
@@ -28,13 +28,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='mothertongue',
-            field=models.CharField(max_length=100, choices=[('english', 'English'), ('french', 'French'), ('german', 'German'), ('italian', 'Italian'), ('other', 'Other'), ('spanish', 'Spanish')]),
+            field=models.CharField(choices=[('english', 'English'), ('french', 'French'), ('german', 'German'), ('italian', 'Italian'), ('other', 'Other'), ('spanish', 'Spanish')], max_length=100),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='sentence',
             name='language',
-            field=models.CharField(max_length=100, choices=[('english', 'English'), ('french', 'French'), ('german', 'German'), ('italian', 'Italian'), ('other', 'Other'), ('spanish', 'Spanish')]),
+            field=models.CharField(choices=[('english', 'English'), ('french', 'French'), ('german', 'German'), ('italian', 'Italian'), ('other', 'Other'), ('spanish', 'Spanish')], max_length=100),
             preserve_default=True,
         ),
     ]

@@ -50,7 +50,7 @@ class Meta(generics.GenericAPIView):
             'default_language': DEFAULT_LANGUAGE,
             'base_credit': config.base_credit,
             'target_branch_count': config.target_branch_count,
-            'target_branch_length': config.target_branch_length,
+            'target_branch_depth': config.target_branch_depth,
             'tree_cost': config.tree_cost,
         })
 

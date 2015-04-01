@@ -23,13 +23,13 @@ class GistsConfiguration(SingletonModel):
     target_branch_count = models.PositiveIntegerField(
         default=settings.DEFAULT_TARGET_BRANCH_COUNT,
         validators=[MinValueValidator(1)])
-    target_branch_length = models.PositiveIntegerField(
-        default=settings.DEFAULT_TARGET_BRANCH_LENGTH,
+    target_branch_depth = models.PositiveIntegerField(
+        default=settings.DEFAULT_TARGET_BRANCH_DEPTH,
         validators=[MinValueValidator(2)])
 
     @property
     def tree_cost(self):
-        return self.target_branch_count * self.target_branch_length
+        return self.target_branch_count * self.target_branch_depth
 
     def __unicode__(self):
         return "Gists Configuration"
