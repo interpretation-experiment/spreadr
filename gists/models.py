@@ -5,11 +5,11 @@ from django.conf import settings
 DEFAULT_LANGUAGE = 'english'
 OTHER_LANGUAGE = 'other'
 LANGUAGE_CHOICES = sorted(
-    [('french', 'Français'),
+    [('french', 'French'),
      ('english', 'English'),
-     ('spanish', 'Español'),
-     ('italian', 'Italiano'),
-     ('german', 'Deutsch'),
+     ('spanish', 'Spanish'),
+     ('italian', 'Italian'),
+     ('german', 'German'),
      ('other', 'Other')],
     key=lambda l: l[1])
 
@@ -65,3 +65,12 @@ class Profile(models.Model):
         n_transformed = self.sentences.count() - n_created
 
         return base + (n_transformed // cost) - n_created
+
+    @property
+    def next_credit_in(self):
+        cost = settings.SUGGESTION_COST
+
+        n_created = self.sentences.filter(parent=None).count()
+        n_transformed = self.sentences.count() - n_created
+
+        return cost - (n_transformed % cost)

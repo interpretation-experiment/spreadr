@@ -167,6 +167,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'trees',
             'sentences',
             'suggestion_credit',
+            'next_credit_in',
             'mothertongue',
             'untouched_trees_count',
             'untouched_defaultlanguage_trees_count',

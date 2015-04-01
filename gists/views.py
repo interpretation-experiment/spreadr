@@ -47,6 +47,8 @@ class Meta(generics.GenericAPIView):
                                        LANGUAGE_CHOICES),
             'other_language': OTHER_LANGUAGE,
             'default_language': DEFAULT_LANGUAGE,
+            'base_credit': settings.BASE_CREDIT,
+            'suggestion_cost': settings.SUGGESTION_COST,
         })
 
 
