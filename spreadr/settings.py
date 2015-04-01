@@ -104,6 +104,22 @@ DEFAULT_TARGET_BRANCH_COUNT = 5
 DEFAULT_TARGET_BRANCH_LENGTH = 10
 
 
+# Caching
+
+CACHES = {
+    'local': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+}
+
+
+# Solo caching (singleton models)
+
+SOLO_CACHE = 'local'
+SOLO_CACHE_TIMEOUT = 60 * 5  # 5 mins
+SOLO_CACHE_PREFIX = 'solo'
+
+
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
