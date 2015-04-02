@@ -1,3 +1,5 @@
+from random import sample
+
 from django.db.models import Count
 import django_filters
 
@@ -21,6 +23,7 @@ class TreeFilter(django_filters.FilterSet):
         action='filter_shortest_branch_depth_gte')
     shortest_branch_depth_lte = django_filters.MethodFilter(
         action='filter_shortest_branch_depth_lte')
+    sample = django_filters.MethodFilter(action='filter_sample')
 
     def filter_untouched_by_profile(self, queryset, value):
         try:
@@ -85,6 +88,15 @@ class TreeFilter(django_filters.FilterSet):
     def filter_shortest_branch_depth_lte(self, queryset, value):
         return self.filter_shortest_branch_depth(queryset, value, 'lte')
 
+    def filter_sample(self, queryset, value):
+        try:
+            ivalue = int(value)
+        except ValueError:
+            return queryset
+
+        pks = list(queryset.values_list('pk', flat=True))
+        return queryset.filter(pk__in=sample(pks, ivalue))
+
     class Meta:
         model = Tree
         fields = (
@@ -92,4 +104,7 @@ class TreeFilter(django_filters.FilterSet):
             'untouched_by_profile',
             'with_other_mothertongue',
             'without_other_mothertongue',
+            'branches_count_gte', 'branches_count_lte',
+            'shortest_branch_depth_gte', 'shortest_branch_depth_lte',
+            'sample',  # Settign sample here assures it's always applied last
         )
