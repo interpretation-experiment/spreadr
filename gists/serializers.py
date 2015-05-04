@@ -171,6 +171,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'url',
             'created',
+            'trained_reformulations',
             'user', 'user_url', 'user_username',
             'trees', 'trees_count',
             'sentences', 'sentences_count',

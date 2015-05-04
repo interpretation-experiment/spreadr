@@ -100,6 +100,7 @@ class Profile(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     user = models.OneToOneField('auth.User')
     mothertongue = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
+    trained_reformulations = models.BooleanField(default=False)
 
     @property
     def distinct_trees(self):
