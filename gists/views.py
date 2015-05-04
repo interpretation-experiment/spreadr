@@ -51,6 +51,7 @@ class Meta(generics.GenericAPIView):
             'base_credit': config.base_credit,
             'target_branch_count': config.target_branch_count,
             'target_branch_depth': config.target_branch_depth,
+            'experiment_work': config.experiment_work,
             'tree_cost': config.tree_cost,
         })
 

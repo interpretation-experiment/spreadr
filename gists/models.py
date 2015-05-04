@@ -27,6 +27,9 @@ class GistsConfiguration(SingletonModel):
     target_branch_depth = models.PositiveIntegerField(
         default=settings.DEFAULT_TARGET_BRANCH_DEPTH,
         validators=[MinValueValidator(2)])
+    experiment_work = models.PositiveIntegerField(
+        default=settings.DEFAULT_EXPERIMENT_WORK,
+        validators=[MinValueValidator(1)])
 
     @property
     def tree_cost(self):
