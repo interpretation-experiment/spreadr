@@ -99,9 +99,15 @@ class ProfileSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+    trees_count = serializers.ReadOnlyField(
+        source='distinct_trees.count'
+    )
     sentences = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
+    )
+    sentences_count = serializers.ReadOnlyField(
+        source='sentences.count'
     )
     mothertongue = serializers.ChoiceField(choices=LANGUAGE_CHOICES)
     untouched_trees_count = serializers.SerializerMethodField()
@@ -166,8 +172,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'id', 'url',
             'created',
             'user', 'user_url', 'user_username',
-            'trees',
-            'sentences',
+            'trees', 'trees_count',
+            'sentences', 'sentences_count',
             'suggestion_credit',
             'next_credit_in',
             'mothertongue',
