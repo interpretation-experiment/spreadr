@@ -175,6 +175,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'user', 'user_url', 'user_username',
             'trees', 'trees_count',
             'sentences', 'sentences_count',
+            'reformulations_count',
             'suggestion_credit',
             'next_credit_in',
             'mothertongue',

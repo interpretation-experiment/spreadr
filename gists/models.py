@@ -126,3 +126,8 @@ class Profile(models.Model):
         n_transformed = self.sentences.count() - n_created
 
         return cost - (n_transformed % cost)
+
+    @property
+    def reformulations_count(self):
+        n_created = self.sentences.filter(parent=None).count()
+        return self.sentences.count() - n_created
