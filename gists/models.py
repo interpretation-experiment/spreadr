@@ -16,6 +16,10 @@ LANGUAGE_CHOICES = sorted(
      ('german', 'German'),
      ('other', 'Other')],
     key=lambda l: l[1])
+BUCKET_CHOICES = sorted(
+    [('experiment', 'Experiment'),
+     ('game', 'Game')],
+    key=lambda b: b[1])
 
 
 class GistsConfiguration(SingletonModel):
@@ -50,6 +54,7 @@ class Sentence(models.Model):
     tree_as_root = models.OneToOneField('Tree', related_name='root', null=True)
     text = models.CharField(max_length=5000)
     language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
+    bucket = models.CharField(choices=BUCKET_CHOICES, max_length=100)
 
     class Meta:
         ordering = ('-created',)

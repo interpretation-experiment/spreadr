@@ -3,12 +3,15 @@ from random import sample
 from django.db.models import Count
 import django_filters
 
-from gists.models import Profile, Tree, LANGUAGE_CHOICES, OTHER_LANGUAGE
+from gists.models import (Profile, Tree, LANGUAGE_CHOICES, OTHER_LANGUAGE,
+                          BUCKET_CHOICES)
 
 
 class TreeFilter(django_filters.FilterSet):
     root_language = django_filters.ChoiceFilter(name='root__language',
                                                 choices=LANGUAGE_CHOICES)
+    root_bucket = django_filters.ChoiceFilter(name='root__bucket',
+                                              choices=BUCKET_CHOICES)
     untouched_by_profile = django_filters.MethodFilter(
         action='filter_untouched_by_profile')
     with_other_mothertongue = django_filters.MethodFilter(
@@ -101,6 +104,7 @@ class TreeFilter(django_filters.FilterSet):
         model = Tree
         fields = (
             'root_language',
+            'root_bucket',
             'untouched_by_profile',
             'with_other_mothertongue',
             'without_other_mothertongue',
