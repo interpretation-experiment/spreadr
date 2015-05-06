@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from gists.models import (Sentence, Tree, Profile, LANGUAGE_CHOICES,
-                          OTHER_LANGUAGE, DEFAULT_LANGUAGE)
+                          OTHER_LANGUAGE, DEFAULT_LANGUAGE, BUCKET_CHOICES)
 
 
 class SentenceSerializer(serializers.ModelSerializer):
@@ -110,27 +110,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         source='sentences.count'
     )
     mothertongue = serializers.ChoiceField(choices=LANGUAGE_CHOICES)
-    untouched_trees_count = serializers.SerializerMethodField()
-    untouched_defaultlanguage_trees_count = serializers.SerializerMethodField()
-    available_mothertongue_otheraware_trees_count = \
-        serializers.SerializerMethodField()
+    available_trees_counts = serializers.SerializerMethodField()
 
-    def get_untouched_trees_count(self, obj):
-        """Count all trees the profile has not participated in."""
-        return Tree.objects\
-            .exclude(pk__in=obj.trees.values_list('pk', flat=True))\
-            .count()
-
-    def get_untouched_defaultlanguage_trees_count(self, obj):
-        """Count all trees in DEFAULT_LANGUAGE the profile has not
-        participated in."""
-        return Tree.objects\
-            .filter(root__language=DEFAULT_LANGUAGE)\
-            .exclude(pk__in=obj.trees.values_list('pk', flat=True))\
-            .count()
-
-    def get_available_mothertongue_otheraware_trees_count(self, obj):
-        """Other- and mothertongue-aware count of available trees.
+    def get_available_trees_counts(self, obj):
+        """Other- and mothertongue-aware count of available trees, per bucket.
 
         If the profile's mothertongue is not OTHER_LANGUAGE, count trees in the
         profile's language in which neither the profile nor profiles in
@@ -146,25 +129,28 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         (In this count, trees created by a profile in OTHER_LANGUAGE, in a
         language other than DEFAULT_LANGUAGE, will never appear.)
+
+        Counts are returned ber bucket.
         """
 
         language = obj.mothertongue
         if language == OTHER_LANGUAGE:
             # Count trees in DEFAULT_LANGUAGE,
             # touched by profiles in OTHER_LANGUAGE
-            return Tree.objects\
+            qs = Tree.objects\
                 .filter(root__language=DEFAULT_LANGUAGE)\
                 .filter(profiles__mothertongue=OTHER_LANGUAGE)\
-                .exclude(pk__in=obj.trees.values_list('pk', flat=True))\
-                .count()
+                .exclude(pk__in=obj.trees.values_list('pk', flat=True))
         else:
             # Count trees in the profile's language,
             # untouched by profiles in OTHER_LANGUAGE
-            return Tree.objects\
+            qs = Tree.objects\
                 .filter(root__language=language)\
                 .exclude(profiles__mothertongue=OTHER_LANGUAGE)\
-                .exclude(pk__in=obj.trees.values_list('pk', flat=True))\
-                .count()
+                .exclude(pk__in=obj.trees.values_list('pk', flat=True))
+
+        return dict((bucket[0], qs.filter(root__bucket=bucket[0]).count())
+                    for bucket in BUCKET_CHOICES)
 
     class Meta:
         model = Profile
@@ -179,9 +165,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'suggestion_credit',
             'next_credit_in',
             'mothertongue',
-            'untouched_trees_count',
-            'untouched_defaultlanguage_trees_count',
-            'available_mothertongue_otheraware_trees_count',
+            'available_trees_counts',
         )
         read_only_fields = (
             'user', 'suggestion_credit',
