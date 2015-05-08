@@ -17,7 +17,8 @@ LANGUAGE_CHOICES = sorted(
      ('other', 'Other')],
     key=lambda l: l[1])
 BUCKET_CHOICES = sorted(
-    [('experiment', 'Experiment'),
+    [('training', 'Training'),
+     ('experiment', 'Experiment'),
      ('game', 'Game')],
     key=lambda b: b[1])
 
