@@ -98,7 +98,8 @@ class TreeFilter(django_filters.FilterSet):
             return queryset
 
         pks = list(queryset.values_list('pk', flat=True))
-        return queryset.filter(pk__in=sample(pks, ivalue))
+        sampled = sample(pks, ivalue) if len(pks) > ivalue else pks
+        return queryset.filter(pk__in=sampled)
 
     class Meta:
         model = Tree
