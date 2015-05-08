@@ -34,6 +34,9 @@ class GistsConfiguration(SingletonModel):
     experiment_work = models.PositiveIntegerField(
         default=settings.DEFAULT_EXPERIMENT_WORK,
         validators=[MinValueValidator(1)])
+    training_work = models.PositiveIntegerField(
+        default=settings.DEFAULT_TRAINING_WORK,
+        validators=[MinValueValidator(1)])
 
     @property
     def tree_cost(self):
