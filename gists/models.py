@@ -110,10 +110,8 @@ class Profile(models.Model):
     user = models.OneToOneField('auth.User')
     mothertongue = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
     trained_reformulations = models.BooleanField(default=False)
-    introduced_exp_training_home = models.BooleanField(default=False)
-    introduced_exp_training_play = models.BooleanField(default=False)
-    introduced_exp_doing_home = models.BooleanField(default=False)
-    introduced_exp_doing_play = models.BooleanField(default=False)
+    introduced_exp_home = models.BooleanField(default=False)
+    introduced_exp_play = models.BooleanField(default=False)
     introduced_play_home = models.BooleanField(default=False)
     introduced_play_play = models.BooleanField(default=False)
 
