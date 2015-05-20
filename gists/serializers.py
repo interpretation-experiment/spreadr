@@ -166,7 +166,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'next_credit_in',
             'mothertongue',
             'available_trees_counts',
-            'introduced_exp_home', 'introduced_exp_play',
+            'introduced_exp_training_home', 'introduced_exp_training_play',
+            'introduced_exp_doing_home', 'introduced_exp_doing_play',
             'introduced_play_home', 'introduced_play_play',
         )
         read_only_fields = (
