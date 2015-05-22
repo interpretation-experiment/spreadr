@@ -132,8 +132,8 @@ class UserViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   viewsets.GenericViewSet):
     """
-    User list and detail, unauthenticated read, authenticated creation
-    and modification.
+    User list and detail, unauthenticated read, authenticated and modification
+    (everything if staff, only username and email if self).
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
