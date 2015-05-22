@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from allauth.account.models import EmailAddress
 
 from gists.models import (Sentence, Tree, Profile, LANGUAGE_CHOICES,
                           OTHER_LANGUAGE, DEFAULT_LANGUAGE, BUCKET_CHOICES)
@@ -215,4 +216,26 @@ class PrivateUserSerializer(UserSerializer):
             'username',
             'profile',
             'emails',
+        )
+
+
+class EmailAddressSerializer(serializers.ModelSerializer):
+    user_url = serializers.HyperlinkedRelatedField(
+        source='user',
+        view_name='user-detail',
+        read_only=True
+    )
+
+    class Meta:
+        model = EmailAddress
+        fields = (
+            'id', 'url',
+            'user', 'user_url',
+            'email',
+            'verified', 'primary',
+        )
+        read_only_fields = (
+            'user', 'user_url',
+            'email',
+            'verified', 'primary',
         )

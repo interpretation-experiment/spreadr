@@ -7,18 +7,20 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
+from allauth.account.models import EmailAddress
 
 from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer,
-                               PrivateUserSerializer)
-from gists.permissions import (IsAdminOrSelfOrReadOnly,
-                               IsAdminOrObjectHasSelfOrReadOnly,
-                               IsAuthenticatedWithoutProfileOrReadOrUpdateOnly,
+                               PrivateUserSerializer, EmailAddressSerializer)
+from gists.permissions import (IsAdminOrSelf,
+                               IsAdminOrSelfElseReadOnly,
+                               IsAdminOrObjectHasSelfElseReadOnly,
+                               IsAuthenticatedWithoutProfileElseReadUpdateOnly,
                                IsAuthenticatedWithProfile,
-                               IsAuthenticatedWithProfileOrReadOnly,)
+                               IsAuthenticatedWithProfileElseReadOnly,)
 
 
 class APIRoot(generics.GenericAPIView):
@@ -33,6 +35,8 @@ class APIRoot(generics.GenericAPIView):
             'profiles': reverse('profile-list', request=request,
                                 format=format),
             'users': reverse('user-list', request=request, format=format),
+            'emailaddresses': reverse('emailaddress-list', request=request,
+                                      format=format),
             'meta': reverse('meta', request=request, format=format),
         })
 
@@ -77,7 +81,7 @@ class SentenceViewSet(mixins.CreateModelMixin,
     """
     queryset = Sentence.objects.all()
     serializer_class = SentenceSerializer
-    permission_classes = (IsAuthenticatedWithProfileOrReadOnly,)
+    permission_classes = (IsAuthenticatedWithProfileElseReadOnly,)
     ordering = ('-created',)
 
     @classmethod
@@ -114,8 +118,8 @@ class ProfileViewSet(mixins.CreateModelMixin,
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = (IsAuthenticatedWithoutProfileOrReadOrUpdateOnly,
-                          IsAdminOrObjectHasSelfOrReadOnly,)
+    permission_classes = (IsAuthenticatedWithoutProfileElseReadUpdateOnly,
+                          IsAdminOrObjectHasSelfElseReadOnly,)
     ordering = ('user__username',)
 
     @list_route(permission_classes=[IsAuthenticatedWithProfile])
@@ -134,10 +138,10 @@ class UserViewSet(mixins.RetrieveModelMixin,
                   viewsets.GenericViewSet):
     """
     User list and detail, unauthenticated read, authenticated and modification
-    (everything if staff, only username and email if self).
+    (everything if staff, only username if self).
     """
     queryset = User.objects.all()
-    permission_classes = (IsAdminOrSelfOrReadOnly,)
+    permission_classes = (IsAdminOrSelfElseReadOnly,)
     ordering = ('username',)
 
     @list_route(permission_classes=[IsAuthenticated])
@@ -162,3 +166,22 @@ class UserViewSet(mixins.RetrieveModelMixin,
 
         # Otherwise, default to public view
         return UserSerializer
+
+
+class EmailAddressViewSet(mixins.CreateModelMixin,
+                          mixins.DestroyModelMixin,
+                          mixins.RetrieveModelMixin,
+                          mixins.ListModelMixin,
+                          viewsets.GenericViewSet):
+    """
+    Email adresses list and detail, authenticated (staff or self) read and
+    destroy, authenticated (any) create.
+    """
+    queryset = EmailAddress.objects.all()
+    serializer_class = EmailAddressSerializer
+    permission_classes = (IsAdminOrSelf,)
+    ordering = ('user__username',)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        serializer.instance.send_confirmation(self.request)
