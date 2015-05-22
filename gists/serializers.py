@@ -179,20 +179,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
 
-    def update(self, instance, validated_data):
-        user = self.context['request'].user
-        is_active_change = ('is_active' in validated_data and
-                            instance.is_active != validated_data['is_active'])
-        is_staff_change = ('is_staff' in validated_data and
-                           instance.is_staff != validated_data['is_staff'])
-        is_email_change = ('email' in validated_data and
-                           instance.email != validated_data['email'])
-        if ((is_staff_change or is_active_change or is_email_change)
-                and not user.is_staff):
-            raise PermissionDenied("Non-staff user cannot change "
-                                   "'is_staff', 'is_active', or 'email'")
-        return super(UserSerializer, self).update(instance, validated_data)
-
     class Meta:
         model = User
         fields = (
@@ -226,16 +212,31 @@ class EmailAddressSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    def update(self, instance, validated_data):
+        if 'primary' in validated_data:
+            iprimary = instance.primary
+            vprimary = validated_data['primary']
+            if iprimary != vprimary:
+                if iprimary and not vprimary:
+                    raise PermissionDenied("Can't set 'primary' to False, "
+                                           "do it by setting another email "
+                                           "address to primary")
+                instance.set_as_primary()
+                del validated_data['primary']
+        return super(EmailAddressSerializer, self).update(instance,
+                                                          validated_data)
+
     class Meta:
         model = EmailAddress
         fields = (
             'id', 'url',
             'user', 'user_url',
             'email',
-            'verified', 'primary',
+            'verified',
+            'primary',
         )
         read_only_fields = (
             'user', 'user_url',
             'email',
-            'verified', 'primary',
+            'verified',
         )

@@ -149,6 +149,24 @@ class UserViewSet(mixins.RetrieveModelMixin,
         serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
+    def perform_update(self, serializer):
+        user = self.request.user
+        obj = self.get_object()
+        data = serializer.validated_data
+
+        is_active_change = ('is_active' in data and
+                            obj.is_active != data['is_active'])
+        is_staff_change = ('is_staff' in data and
+                           obj.is_staff != data['is_staff'])
+        is_email_change = ('email' in data and
+                           obj.email != data['email'])
+
+        if ((is_staff_change or is_active_change or is_email_change)
+                and not user.is_staff):
+            raise PermissionDenied("Non-staff user cannot change "
+                                   "'is_staff', 'is_active', or 'email'")
+        serializer.save()
+
     def get_serializer_class(self):
         user = self.request.user
 
@@ -170,6 +188,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
 
 class EmailAddressViewSet(mixins.CreateModelMixin,
                           mixins.DestroyModelMixin,
+                          mixins.UpdateModelMixin,
                           mixins.RetrieveModelMixin,
                           mixins.ListModelMixin,
                           viewsets.GenericViewSet):
