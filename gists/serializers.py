@@ -196,6 +196,23 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'url', 'is_active', 'is_staff',
-            'email', 'username',
+            'username',
             'profile',
+        )
+
+
+class PrivateUserSerializer(UserSerializer):
+    emails = serializers.PrimaryKeyRelatedField(
+        source='emailaddress_set',
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'url', 'is_active', 'is_staff',
+            'username',
+            'profile',
+            'emails',
         )

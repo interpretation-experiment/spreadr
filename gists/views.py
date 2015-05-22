@@ -12,7 +12,8 @@ from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
-                               ProfileSerializer, UserSerializer)
+                               ProfileSerializer, UserSerializer,
+                               PrivateUserSerializer)
 from gists.permissions import (IsAdminOrSelfOrReadOnly,
                                IsAdminOrObjectHasSelfOrReadOnly,
                                IsAuthenticatedWithoutProfileOrReadOrUpdateOnly,
@@ -136,7 +137,6 @@ class UserViewSet(mixins.RetrieveModelMixin,
     (everything if staff, only username and email if self).
     """
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = (IsAdminOrSelfOrReadOnly,)
     ordering = ('username',)
 
@@ -144,3 +144,21 @@ class UserViewSet(mixins.RetrieveModelMixin,
     def me(self, request, format=None):
         serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
+
+    def get_serializer_class(self):
+        user = self.request.user
+
+        # In list view, only staff gets to see everything
+        if self.action == 'list':
+            return PrivateUserSerializer if user.is_staff else UserSerializer
+
+        # In detail view, staff and self see everything
+        if self.action == 'retrieve':
+            obj = self.get_object()
+            if user.is_staff or user == obj:
+                return PrivateUserSerializer
+            else:
+                return UserSerializer
+
+        # Otherwise, default to public view
+        return UserSerializer
