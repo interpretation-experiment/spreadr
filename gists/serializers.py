@@ -184,9 +184,12 @@ class UserSerializer(serializers.ModelSerializer):
                             instance.is_active != validated_data['is_active'])
         is_staff_change = ('is_staff' in validated_data and
                            instance.is_staff != validated_data['is_staff'])
-        if (is_staff_change or is_active_change) and not user.is_staff:
-            raise PermissionDenied(
-                "Non-staff user cannot change 'is_staff' or 'is_active'")
+        is_email_change = ('email' in validated_data and
+                           instance.email != validated_data['email'])
+        if ((is_staff_change or is_active_change or is_email_change)
+                and not user.is_staff):
+            raise PermissionDenied("Non-staff user cannot change "
+                                   "'is_staff', 'is_active', or 'email'")
         return super(UserSerializer, self).update(instance, validated_data)
 
     class Meta:
