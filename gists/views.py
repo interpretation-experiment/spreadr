@@ -13,7 +13,7 @@ from gists.models import (Sentence, Tree, Profile, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, UserSerializer)
-from gists.permissions import (IsAdminOrReadOnly,
+from gists.permissions import (IsAdminOrSelfOrReadOnly,
                                IsAdminOrObjectHasSelfOrReadOnly,
                                IsAuthenticatedWithoutProfileOrReadOrUpdateOnly,
                                IsAuthenticatedWithProfile,
@@ -137,7 +137,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (IsAdminOrSelfOrReadOnly,)
     ordering = ('username',)
 
     @list_route(permission_classes=[IsAuthenticated])

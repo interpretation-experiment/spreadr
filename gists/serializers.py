@@ -1,3 +1,4 @@
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -176,6 +177,17 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+        is_active_change = ('is_active' in validated_data and
+                            instance.is_active != validated_data['is_active'])
+        is_staff_change = ('is_staff' in validated_data and
+                           instance.is_staff != validated_data['is_staff'])
+        if (is_staff_change or is_active_change) and not user.is_staff:
+            raise PermissionDenied(
+                "Non-staff user cannot change 'is_staff' or 'is_active'")
+        return super(UserSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = User

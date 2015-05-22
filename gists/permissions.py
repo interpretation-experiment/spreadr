@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class IsAdminOrReadOnly(permissions.BasePermission):
+class IsAdminOrSelfOrReadOnly(permissions.BasePermission):
     """
     Only allow admin users.
     """
@@ -12,8 +12,8 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # Admin users are allowed everything
-        return request.user.is_staff
+        # Ok if you're admin or if this is you
+        return request.user.is_staff or request.user == obj
 
 
 class IsAdminOrObjectHasSelfOrReadOnly(permissions.BasePermission):
