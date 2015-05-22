@@ -97,6 +97,8 @@ REST_AUTH_SERIALIZERS = {
 
 OLD_PASSWORD_FIELD_ENABLED = True
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 # Gists configuration
 
