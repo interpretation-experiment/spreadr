@@ -188,27 +188,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class PrivateUserSerializer(UserSerializer):
-    emails = serializers.PrimaryKeyRelatedField(
-        source='emailaddress_set',
-        many=True,
-        read_only=True
-    )
-
-    class Meta:
-        model = User
-        fields = (
-            'id', 'url', 'is_active', 'is_staff',
-            'username',
-            'email',
-            'profile',
-            'emails',
-        )
-        read_only_fields = (
-            'email',
-        )
-
-
 class EmailAddressSerializer(serializers.ModelSerializer):
     user_url = serializers.HyperlinkedRelatedField(
         source='user',
@@ -274,4 +253,25 @@ class EmailAddressSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'user', 'user_url',
             'verified',
+        )
+
+
+class PrivateUserSerializer(UserSerializer):
+    emailaddresses = EmailAddressSerializer(
+        source='emailaddress_set',
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'url', 'is_active', 'is_staff',
+            'username',
+            'email',
+            'profile',
+            'emailaddresses',
+        )
+        read_only_fields = (
+            'email',
         )
