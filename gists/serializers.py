@@ -200,7 +200,7 @@ class PrivateUserSerializer(UserSerializer):
         fields = (
             'id', 'url', 'is_active', 'is_staff',
             'username',
-            'email'
+            'email',
             'profile',
             'emails',
         )
