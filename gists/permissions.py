@@ -1,9 +1,33 @@
 from rest_framework import permissions
 
 
-class IsAdminOrSelfOrReadOnly(permissions.BasePermission):
+class IsAdminElseCreateUpdateRetrieveDestroyOnly(permissions.BasePermission):
     """
-    Only allow admin users.
+    Only allow admin users, else only creation, update, retrieve, or destroy.
+    """
+
+    def has_permission(self, request, view):
+        if request.method == 'OPTIONS':
+            return True
+        if view.action in ['retrieve', 'update', 'destroy']:
+            return True
+        return request.user.is_staff or (request.method == 'POST')
+
+
+class IsAdminOrHasSelf(permissions.BasePermission):
+    """
+    Only allow admin users or owner.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method == 'OPTIONS':
+            return True
+        return request.user.is_staff or request.user == obj.user
+
+
+class IsAdminOrSelfElseReadOnly(permissions.BasePermission):
+    """
+    Only allow admin users and self, else read only.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -16,9 +40,10 @@ class IsAdminOrSelfOrReadOnly(permissions.BasePermission):
         return request.user.is_staff or request.user == obj
 
 
-class IsAdminOrObjectHasSelfOrReadOnly(permissions.BasePermission):
+class IsAdminOrObjectHasSelfElseReadOnly(permissions.BasePermission):
     """
-    Only allow admin users or if the object contains the authenticated user.
+    Only allow admin users or if the object contains the authenticated user,
+    else read only.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -51,11 +76,11 @@ class ProfilePermissionMixin:
                      or request.user.profile is None))
 
 
-class IsAuthenticatedWithoutProfileOrReadOrUpdateOnly(
+class IsAuthenticatedWithoutProfileElseReadUpdateOnly(
         permissions.BasePermission, ProfilePermissionMixin):
     """
     Only allow authenticated users that have no profile attached to create,
-    the rest can write and update.
+    the rest can read and update.
     """
 
     def has_permission(self, request, view):
@@ -84,8 +109,8 @@ class IsAuthenticatedWithProfile(permissions.BasePermission,
         return self.is_authenticated_with_profile(request)
 
 
-class IsAuthenticatedWithProfileOrReadOnly(permissions.BasePermission,
-                                           ProfilePermissionMixin):
+class IsAuthenticatedWithProfileElseReadOnly(permissions.BasePermission,
+                                             ProfilePermissionMixin):
     """
     Only allow authenticated users that have a profile attached,
     else read-only.

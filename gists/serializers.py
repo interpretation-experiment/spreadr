@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from allauth.account.models import EmailAddress
 
 from gists.models import (Sentence, Tree, Profile, LANGUAGE_CHOICES,
                           OTHER_LANGUAGE, DEFAULT_LANGUAGE, BUCKET_CHOICES)
@@ -178,24 +179,99 @@ class ProfileSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
 
+    class Meta:
+        model = User
+        fields = (
+            'id', 'url', 'is_active', 'is_staff',
+            'username',
+            'profile',
+        )
+
+
+class EmailAddressSerializer(serializers.ModelSerializer):
+    user_url = serializers.HyperlinkedRelatedField(
+        source='user',
+        view_name='user-detail',
+        read_only=True
+    )
+
     def update(self, instance, validated_data):
+        """Prevent setting 'primary' to false, and invalidate 'verified'
+        if the address changes."""
+
+        if 'primary' in validated_data:
+            iprimary = instance.primary
+            vprimary = validated_data['primary']
+            if iprimary != vprimary:
+                # 'primary' is being changed, but we only allow False -> True
+                if iprimary and not vprimary:
+                    raise PermissionDenied("Can't set 'primary' to False, "
+                                           "do it by setting another email "
+                                           "address to primary")
+                instance.set_as_primary()
+                del validated_data['primary']
+
+        if ('email' in validated_data and
+                validated_data['email'] != instance.email):
+            # 'email' is being changed, so invalidate the verification
+            validated_data['verified'] = False
+
+        return super(EmailAddressSerializer, self).update(instance,
+                                                          validated_data)
+
+    def create(self, validated_data, **kwargs):
+        """Prevent setting 'primary' to true if there is already another
+        primary address, otherwise force setting to primary."""
+
         user = self.context['request'].user
-        is_active_change = ('is_active' in validated_data and
-                            instance.is_active != validated_data['is_active'])
-        is_staff_change = ('is_staff' in validated_data and
-                           instance.is_staff != validated_data['is_staff'])
-        is_email_change = ('email' in validated_data and
-                           instance.email != validated_data['email'])
-        if ((is_staff_change or is_active_change or is_email_change)
-                and not user.is_staff):
-            raise PermissionDenied("Non-staff user cannot change "
-                                   "'is_staff', 'is_active', or 'email'")
-        return super(UserSerializer, self).update(instance, validated_data)
+
+        if user.emailaddress_set.filter(primary=True).count() > 0:
+            # User already has a primary address
+            if validated_data.get('primary', False):
+                # Can't set two (must be done in two steps: first create,
+                # then set primary)
+                raise PermissionDenied("User already has a primary address")
+            return super(EmailAddressSerializer, self).create(
+                validated_data, **kwargs)
+
+        else:
+            # User has no primary address, use this one
+            instance = super(EmailAddressSerializer, self).create(
+                validated_data, **kwargs)
+            instance.set_as_primary()
+            return instance
+
+    class Meta:
+        model = EmailAddress
+        fields = (
+            'id', 'url',
+            'user', 'user_url',
+            'email',
+            'verified',
+            'primary',
+        )
+        read_only_fields = (
+            'user', 'user_url',
+            'verified',
+        )
+
+
+class PrivateUserSerializer(UserSerializer):
+    emailaddresses = EmailAddressSerializer(
+        source='emailaddress_set',
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = User
         fields = (
             'id', 'url', 'is_active', 'is_staff',
-            'email', 'username',
+            'username',
+            'email',
             'profile',
+            'emailaddresses',
+        )
+        read_only_fields = (
+            'email',
         )

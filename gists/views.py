@@ -7,17 +7,21 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
+from allauth.account.models import EmailAddress
 
 from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
-                               ProfileSerializer, UserSerializer)
-from gists.permissions import (IsAdminOrSelfOrReadOnly,
-                               IsAdminOrObjectHasSelfOrReadOnly,
-                               IsAuthenticatedWithoutProfileOrReadOrUpdateOnly,
+                               ProfileSerializer, UserSerializer,
+                               PrivateUserSerializer, EmailAddressSerializer)
+from gists.permissions import (IsAdminElseCreateUpdateRetrieveDestroyOnly,
+                               IsAdminOrHasSelf,
+                               IsAdminOrSelfElseReadOnly,
+                               IsAdminOrObjectHasSelfElseReadOnly,
+                               IsAuthenticatedWithoutProfileElseReadUpdateOnly,
                                IsAuthenticatedWithProfile,
-                               IsAuthenticatedWithProfileOrReadOnly,)
+                               IsAuthenticatedWithProfileElseReadOnly,)
 
 
 class APIRoot(generics.GenericAPIView):
@@ -32,6 +36,8 @@ class APIRoot(generics.GenericAPIView):
             'profiles': reverse('profile-list', request=request,
                                 format=format),
             'users': reverse('user-list', request=request, format=format),
+            'emailaddresses': reverse('emailaddress-list', request=request,
+                                      format=format),
             'meta': reverse('meta', request=request, format=format),
         })
 
@@ -76,7 +82,7 @@ class SentenceViewSet(mixins.CreateModelMixin,
     """
     queryset = Sentence.objects.all()
     serializer_class = SentenceSerializer
-    permission_classes = (IsAuthenticatedWithProfileOrReadOnly,)
+    permission_classes = (IsAuthenticatedWithProfileElseReadOnly,)
     ordering = ('-created',)
 
     @classmethod
@@ -113,8 +119,8 @@ class ProfileViewSet(mixins.CreateModelMixin,
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = (IsAuthenticatedWithoutProfileOrReadOrUpdateOnly,
-                          IsAdminOrObjectHasSelfOrReadOnly,)
+    permission_classes = (IsAuthenticatedWithoutProfileElseReadUpdateOnly,
+                          IsAdminOrObjectHasSelfElseReadOnly,)
     ordering = ('user__username',)
 
     @list_route(permission_classes=[IsAuthenticatedWithProfile])
@@ -133,14 +139,90 @@ class UserViewSet(mixins.RetrieveModelMixin,
                   viewsets.GenericViewSet):
     """
     User list and detail, unauthenticated read, authenticated and modification
-    (everything if staff, only username and email if self).
+    (everything if staff, only username if self).
     """
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (IsAdminOrSelfOrReadOnly,)
+    permission_classes = (IsAdminOrSelfElseReadOnly,)
     ordering = ('username',)
 
     @list_route(permission_classes=[IsAuthenticated])
     def me(self, request, format=None):
         serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        """Allow changing the username.
+
+        'is_active' and 'is_staff' are blocked here, and 'email' is not a
+        writable field on the serializer. so nothing but the username can be
+        changed."""
+
+        user = self.request.user
+        obj = self.get_object()
+        data = serializer.validated_data
+
+        is_active_change = ('is_active' in data and
+                            obj.is_active != data['is_active'])
+        is_staff_change = ('is_staff' in data and
+                           obj.is_staff != data['is_staff'])
+
+        if ((is_staff_change or is_active_change) and not user.is_staff):
+            raise PermissionDenied("Non-staff user cannot change "
+                                   "'is_staff' or 'is_active'")
+        serializer.save()
+
+    def get_serializer_class(self):
+        user = self.request.user
+
+        # In list view, only staff gets to see everything
+        if self.action == 'list':
+            return PrivateUserSerializer if user.is_staff else UserSerializer
+
+        # In detail view, staff and self see everything
+        if self.action == 'retrieve':
+            obj = self.get_object()
+            if user.is_staff or user == obj:
+                return PrivateUserSerializer
+            else:
+                return UserSerializer
+
+        # Otherwise, default to public view
+        return UserSerializer
+
+
+class EmailAddressViewSet(mixins.CreateModelMixin,
+                          mixins.DestroyModelMixin,
+                          mixins.UpdateModelMixin,
+                          mixins.RetrieveModelMixin,
+                          mixins.ListModelMixin,
+                          viewsets.GenericViewSet):
+    """
+    Email adresses list and detail, authenticated (staff or self) read and
+    destroy, authenticated (any) create.
+    """
+    queryset = EmailAddress.objects.all()
+    serializer_class = EmailAddressSerializer
+    permission_classes = (IsAuthenticated,
+                          IsAdminElseCreateUpdateRetrieveDestroyOnly,
+                          IsAdminOrHasSelf,)
+    ordering = ('user__username',)
+
+    def perform_create(self, serializer):
+        """Send a confirmation email to the new address."""
+        serializer.save(user=self.request.user)
+        if not serializer.instance.verified:
+            serializer.instance.send_confirmation(self.request)
+
+    def perform_update(self, serializer):
+        """Send a confirmation email to the new address."""
+        serializer.save()
+        if not serializer.instance.verified:
+            serializer.instance.send_confirmation(self.request)
+
+    def perform_destroy(self, instance):
+        """Prevent deleting a primary address if it's not the last one."""
+        other_emails = instance.user.emailaddress_set.exclude(pk=instance.pk)
+        if other_emails.count() > 0 and instance.primary:
+            raise PermissionDenied("Can't delete a primary address if it's "
+                                   "not the last one")
+        instance.delete()
