@@ -11,7 +11,7 @@ router.register(r'trees', views.TreeViewSet)
 router.register(r'sentences', views.SentenceViewSet)
 router.register(r'users', views.UserViewSet)
 router.register(r'profiles', views.ProfileViewSet)
-router.register(r'emailaddresses', views.EmailAddressViewSet)
+router.register(r'emails', views.EmailAddressViewSet, base_name='email')
 
 
 urlpatterns = [

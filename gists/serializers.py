@@ -189,6 +189,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class EmailAddressSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='email-detail')
     user_url = serializers.HyperlinkedRelatedField(
         source='user',
         view_name='user-detail',
@@ -257,7 +258,7 @@ class EmailAddressSerializer(serializers.ModelSerializer):
 
 
 class PrivateUserSerializer(UserSerializer):
-    emailaddresses = EmailAddressSerializer(
+    emails = EmailAddressSerializer(
         source='emailaddress_set',
         many=True,
         read_only=True
@@ -270,7 +271,7 @@ class PrivateUserSerializer(UserSerializer):
             'username',
             'email',
             'profile',
-            'emailaddresses',
+            'emails',
         )
         read_only_fields = (
             'email',
