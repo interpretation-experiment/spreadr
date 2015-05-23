@@ -200,8 +200,12 @@ class PrivateUserSerializer(UserSerializer):
         fields = (
             'id', 'url', 'is_active', 'is_staff',
             'username',
+            'email'
             'profile',
             'emails',
+        )
+        read_only_fields = (
+            'email',
         )
 
 
@@ -213,18 +217,50 @@ class EmailAddressSerializer(serializers.ModelSerializer):
     )
 
     def update(self, instance, validated_data):
+        """Prevent setting 'primary' to false, and invalidate 'verified'
+        if the address changes."""
+
         if 'primary' in validated_data:
             iprimary = instance.primary
             vprimary = validated_data['primary']
             if iprimary != vprimary:
+                # 'primary' is being changed, but we only allow False -> True
                 if iprimary and not vprimary:
                     raise PermissionDenied("Can't set 'primary' to False, "
                                            "do it by setting another email "
                                            "address to primary")
                 instance.set_as_primary()
                 del validated_data['primary']
+
+        if ('email' in validated_data and
+                validated_data['email'] != instance.email):
+            # 'email' is being changed, so invalidate the verification
+            validated_data['verified'] = False
+
         return super(EmailAddressSerializer, self).update(instance,
                                                           validated_data)
+
+    def create(self, validated_data, **kwargs):
+        """Prevent setting 'primary' to true if there is already another
+        primary address, otherwise force setting to primary."""
+
+        user = self.context['request'].user
+
+        if user.emailaddress_set.filter(primary=True).count() > 0:
+            # User already has a primary address
+            if validated_data.get('primary', False):
+                # Can't set two (must be done in two steps: first create,
+                # then set primary)
+                raise PermissionDenied("User already has a primary address")
+            return super(EmailAddressSerializer, self).create(
+                validated_data, **kwargs)
+
+        else:
+            # User has no primary address, use this one
+            instance = super(EmailAddressSerializer, self).create(
+                validated_data, **kwargs)
+            instance.set_as_primary()
+            return instance
 
     class Meta:
         model = EmailAddress
@@ -237,6 +273,5 @@ class EmailAddressSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             'user', 'user_url',
-            'email',
             'verified',
         )

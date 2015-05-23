@@ -1,16 +1,28 @@
 from rest_framework import permissions
 
 
-class IsAdminOrSelf(permissions.BasePermission):
+class IsAdminElseCreateUpdateRetrieveDestroyOnly(permissions.BasePermission):
     """
-    Only allow admin users and self.
+    Only allow admin users, else only creation, update, retrieve, or destroy.
     """
 
     def has_permission(self, request, view):
-        return request.user.is_staff
+        if request.method == 'OPTIONS':
+            return True
+        if view.action in ['retrieve', 'update', 'destroy']:
+            return True
+        return request.user.is_staff or (request.method == 'POST')
+
+
+class IsAdminOrHasSelf(permissions.BasePermission):
+    """
+    Only allow admin users or owner.
+    """
 
     def has_object_permission(self, request, view, obj):
-        return request.user.is_staff or request.user == obj
+        if request.method == 'OPTIONS':
+            return True
+        return request.user.is_staff or request.user == obj.user
 
 
 class IsAdminOrSelfElseReadOnly(permissions.BasePermission):
