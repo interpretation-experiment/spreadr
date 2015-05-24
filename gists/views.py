@@ -36,7 +36,7 @@ class APIRoot(generics.GenericAPIView):
             'profiles': reverse('profile-list', request=request,
                                 format=format),
             'users': reverse('user-list', request=request, format=format),
-            'emailaddresses': reverse('emailaddress-list', request=request,
+            'emails': reverse('email-list', request=request,
                                       format=format),
             'meta': reverse('meta', request=request, format=format),
         })
