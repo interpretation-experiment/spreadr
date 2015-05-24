@@ -2,8 +2,9 @@ from django.contrib.auth.models import User
 from django.db.models import Count
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, mixins, generics, filters
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
@@ -36,8 +37,7 @@ class APIRoot(generics.GenericAPIView):
             'profiles': reverse('profile-list', request=request,
                                 format=format),
             'users': reverse('user-list', request=request, format=format),
-            'emails': reverse('email-list', request=request,
-                                      format=format),
+            'emails': reverse('email-list', request=request, format=format),
             'meta': reverse('meta', request=request, format=format),
         })
 
@@ -206,6 +206,14 @@ class EmailAddressViewSet(mixins.CreateModelMixin,
                           IsAdminElseCreateUpdateRetrieveDestroyOnly,
                           IsAdminOrHasSelf,)
     ordering = ('user__username',)
+
+    @detail_route(methods=['post'])
+    def verify(self, request, pk=None):
+        email = get_object_or_404(self.queryset, pk=pk)
+        email.send_confirmation(request)
+        return Response({'status': "A verification email has been sent "
+                         "to '{}', please follow the "
+                         "instructions in it".format(email.email)})
 
     def perform_create(self, serializer):
         """Send a confirmation email to the new address."""
