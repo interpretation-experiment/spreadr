@@ -237,7 +237,11 @@ class EmailAddressViewSet(mixins.CreateModelMixin,
     def perform_destroy(self, instance):
         """Prevent deleting a primary address if it's not the last one."""
         other_emails = instance.user.emailaddress_set.exclude(pk=instance.pk)
-        if other_emails.count() > 0 and instance.primary:
-            raise PermissionDenied("Can't delete a primary address if it's "
-                                   "not the last one")
+        if other_emails.count() > 0:
+            if instance.primary:
+                raise PermissionDenied("Can't delete a primary address if "
+                                       "it's not the last one")
+        else:
+            instance.user.email = ""
+            instance.user.save()
         instance.delete()
