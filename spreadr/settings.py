@@ -69,6 +69,8 @@ ROOT_URLCONF = 'spreadr.urls'
 
 WSGI_APPLICATION = 'spreadr.wsgi.application'
 
+TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
+
 
 # REST Settings
 

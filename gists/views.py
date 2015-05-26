@@ -2,7 +2,8 @@ from django.contrib.auth.models import User
 from django.db.models import Count
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.sites.shortcuts import get_current_site
 from rest_framework import viewsets, mixins, generics, filters
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
@@ -23,6 +24,12 @@ from gists.permissions import (IsAdminElseCreateUpdateRetrieveDestroyOnly,
                                IsAuthenticatedWithoutProfileElseReadUpdateOnly,
                                IsAuthenticatedWithProfile,
                                IsAuthenticatedWithProfileElseReadOnly,)
+
+
+def confirm_email(request, key=None):
+    domain = get_current_site(request).domain
+    url = 'http://{}/profile/emails/confirm?key={}'.format(domain, key)
+    return redirect(url)
 
 
 class APIRoot(generics.GenericAPIView):

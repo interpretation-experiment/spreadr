@@ -18,6 +18,8 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^meta/$', views.Meta.as_view(), name='meta'),
     url(r'^$', views.APIRoot.as_view()),
+    url(r'^confirm-email/(?P<key>\w+)/$', views.confirm_email,
+        name='account_confirm_email')
 ]
 
 
