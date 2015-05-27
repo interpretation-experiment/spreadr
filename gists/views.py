@@ -13,7 +13,9 @@ from allauth.account.models import EmailAddress
 
 from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, GistsConfiguration,
-                          LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE)
+                          LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE,
+                          GENDER_CHOICES, ISCO_MAJOR_CHOICES,
+                          ISCO_SUBMAJOR_CHOICES, ISCO_MINOR_CHOICES)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, PrivateProfileSerializer,
                                UserSerializer, PrivateUserSerializer,
@@ -25,6 +27,10 @@ from gists.permissions import (IsAdminElseCreateUpdateRetrieveDestroyOnly,
                                IsAuthenticatedWithoutProfileElseReadUpdateOnly,
                                IsAuthenticatedWithProfile,
                                IsAuthenticatedWithProfileElseReadOnly,)
+
+
+def remap_choices(choices):
+    return map(lambda l: {'name': l[0], 'label': l[1]}, choices)
 
 
 def confirm_email(request, key=None):
@@ -58,16 +64,22 @@ class Meta(generics.GenericAPIView):
         config = GistsConfiguration.get_solo()
         return Response({
             'version': settings.VERSION,
-            'supported_languages': map(lambda l: {'name': l[0], 'label': l[1]},
-                                       LANGUAGE_CHOICES),
+
+            'supported_languages': remap_choices(LANGUAGE_CHOICES),
             'other_language': OTHER_LANGUAGE,
             'default_language': DEFAULT_LANGUAGE,
+
             'base_credit': config.base_credit,
             'target_branch_count': config.target_branch_count,
             'target_branch_depth': config.target_branch_depth,
             'experiment_work': config.experiment_work,
             'training_work': config.training_work,
             'tree_cost': config.tree_cost,
+
+            'gender_choices': remap_choices(GENDER_CHOICES),
+            'isco_major_choices': remap_choices(ISCO_MAJOR_CHOICES),
+            'isco_submajor_choices': remap_choices(ISCO_SUBMAJOR_CHOICES),
+            'isco_minor_choices': remap_choices(ISCO_MINOR_CHOICES),
         })
 
 
