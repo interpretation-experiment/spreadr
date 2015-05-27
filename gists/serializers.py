@@ -157,22 +157,57 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = (
-            'id', 'url',
-            'created',
-            'trained_reformulations',
+            'id', 'url', 'created',
             'user', 'user_url', 'user_username',
+
             'trees', 'trees_count',
             'sentences', 'sentences_count',
             'reformulations_count',
-            'suggestion_credit',
-            'next_credit_in',
-            'mothertongue',
+
+            'suggestion_credit', 'next_credit_in',
             'available_trees_counts',
+
+            'mothertongue',
+            'trained_reformulations',
+
             'introduced_exp_home', 'introduced_exp_play',
             'introduced_play_home', 'introduced_play_play',
         )
         read_only_fields = (
             'user', 'suggestion_credit',
+            'questionnaire_done',
+        )
+
+
+class PrivateProfileSerializer(ProfileSerializer):
+    class Meta:
+        model = Profile
+        fields = (
+            'id', 'url', 'created',
+            'user', 'user_url', 'user_username',
+
+            'trees', 'trees_count',
+            'sentences', 'sentences_count',
+            'reformulations_count',
+
+            'suggestion_credit', 'next_credit_in',
+            'available_trees_counts',
+
+            'mothertongue',
+            'trained_reformulations',
+
+            # Private data
+            'age', 'gender',
+            'isco_major', 'isco_submajor', 'isco_minor',
+            'naive', 'naive_detail',
+            'questionnaire_done',
+
+            'introduced_exp_home', 'introduced_exp_play',
+            'introduced_play_home', 'introduced_play_play',
+        )
+        read_only_fields = (
+            'user', 'suggestion_credit',
+            'questionnaire_done',
         )
 
 

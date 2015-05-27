@@ -15,8 +15,9 @@ from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
-                               ProfileSerializer, UserSerializer,
-                               PrivateUserSerializer, EmailAddressSerializer)
+                               ProfileSerializer, PrivateProfileSerializer,
+                               UserSerializer, PrivateUserSerializer,
+                               EmailAddressSerializer)
 from gists.permissions import (IsAdminElseCreateUpdateRetrieveDestroyOnly,
                                IsAdminOrHasSelf,
                                IsAdminOrSelfElseReadOnly,
@@ -125,7 +126,6 @@ class ProfileViewSet(mixins.CreateModelMixin,
     and modification.
     """
     queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticatedWithoutProfileElseReadUpdateOnly,
                           IsAdminOrObjectHasSelfElseReadOnly,)
     ordering = ('user__username',)
@@ -138,6 +138,22 @@ class ProfileViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def get_serializer_class(self):
+        user = self.request.user
+
+        # Staff can see everything
+        if user.is_staff:
+            return PrivateProfileSerializer
+
+        # Self in detail view can see privately
+        if self.action == 'retrieve':
+            obj = self.get_object()
+            if user == obj.user:
+                return PrivateProfileSerializer
+
+        # The rest sees publicly
+        return ProfileSerializer
 
 
 class UserViewSet(mixins.RetrieveModelMixin,
@@ -181,19 +197,17 @@ class UserViewSet(mixins.RetrieveModelMixin,
     def get_serializer_class(self):
         user = self.request.user
 
-        # In list view, only staff gets to see everything
-        if self.action == 'list':
-            return PrivateUserSerializer if user.is_staff else UserSerializer
+        # Staff can see everything
+        if user.is_staff:
+            return PrivateUserSerializer
 
-        # In detail view, staff and self see everything
+        # Self in detail view can see privately
         if self.action == 'retrieve':
             obj = self.get_object()
-            if user.is_staff or user == obj:
+            if user == obj:
                 return PrivateUserSerializer
-            else:
-                return UserSerializer
 
-        # Otherwise, default to public view
+        # The rest sees publicly
         return UserSerializer
 
 
