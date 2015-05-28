@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
 from allauth.account.models import EmailAddress
+from rest_condition import C
 
 from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
@@ -21,7 +22,11 @@ from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, QuestionnaireSerializer,
                                UserSerializer, PrivateUserSerializer,
                                EmailAddressSerializer)
-from gists.permissions import (IsAdminElseCreateUpdateRetrieveDestroyOnly,
+from gists.permissions import (IsAdmin, HasProfile, HasQuestionnaire,
+                               ObjUserIsSelf, ObjProfileIsSelf,
+                               WantsCreate, WantsUpdate, WantsList,
+                               WantsRetrieve, WantsDestroy,
+                               IsAdminElseCreateUpdateRetrieveDestroyOnly,
                                IsAdminOrHasSelf,
                                IsAdminOrSelfElseReadOnly,
                                IsAdminOrObjectHasSelfElseReadOnly,
@@ -32,6 +37,17 @@ from gists.permissions import (IsAdminElseCreateUpdateRetrieveDestroyOnly,
 
 def remap_choices(choices):
     return map(lambda l: {'name': l[0], 'label': l[1]}, choices)
+
+
+def is_user_authenticated_with_profile(user):
+    return (user.is_authenticated() and
+            hasattr(user, 'profile') and
+            user.profile is not None)
+
+
+def profile_has_questionnaire(profile):
+    return (hasattr(profile, 'questionnaire') and
+            profile.questionnaire is not None)
 
 
 def confirm_email(request, key=None):
@@ -51,6 +67,8 @@ class APIRoot(generics.GenericAPIView):
                                  format=format),
             'profiles': reverse('profile-list', request=request,
                                 format=format),
+            'questionnaires': reverse('questionnaire-list', request=request,
+                                      format=format),
             'users': reverse('user-list', request=request, format=format),
             'emails': reverse('email-list', request=request, format=format),
             'meta': reverse('meta', request=request, format=format),
@@ -162,9 +180,22 @@ class QuestionnaireViewSet(mixins.CreateModelMixin,
     authenticated creation."""
     queryset = Questionnaire.objects.all()
     serializer_class = QuestionnaireSerializer
-    #permission_classes = (IsAuthenticated,
-                          #IsWithProfileWithoutQuestionnaireElseReadOnly,
-                          #IsAdminOrHasSelfProfileElseCreateOnly,)
+    permission_classes = \
+        ((C(IsAuthenticated) &
+          (C(WantsList) |
+           (C(WantsCreate) & C(HasProfile) & ~C(HasQuestionnaire)) |
+           (C(WantsRetrieve) & (C(IsAdmin) | C(ObjProfileIsSelf))))),)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return self.queryset
+        elif is_user_authenticated_with_profile(user):
+            profile = user.profile
+            if profile_has_questionnaire(profile):
+                return self.queryset.filter(pk=user.profile.questionnaire.pk)
+
+        return self.queryset.none()
 
     def perform_create(self, serializer):
         serializer.save(profile=self.request.user.profile)

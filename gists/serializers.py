@@ -190,14 +190,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):
-    questionnaire_url = serializers.HyperlinkedRelatedField(
-        source='questionnaire',
-        view_name='questionnaire-detail',
-        read_only=True
-    )
     profile_url = serializers.HyperlinkedRelatedField(
         source='profile',
-        view_name='profile-view',
+        view_name='profile-detail',
         read_only=True
     )
 

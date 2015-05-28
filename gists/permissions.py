@@ -1,4 +1,73 @@
 from rest_framework import permissions
+import logging
+logger = logging.getLogger('django')
+
+
+class IsAdmin(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return request.user.is_staff
+
+
+class HasProfile(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return (hasattr(request.user, 'profile')
+                and request.user.profile is not None)
+
+
+class HasQuestionnaire(HasProfile):
+
+    def has_permission(self, request, view):
+        # The HasProfile parent called here ensures request.user has a profile
+        return (super(HasQuestionnaire, self).has_permission(request, view)
+                and hasattr(request.user.profile, 'questionnaire')
+                and request.user.profile.questionnaire is not None)
+
+
+class ObjUserIsSelf(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        return obj.user == request.user
+
+
+class ObjProfileIsSelf(HasProfile):
+
+    # The HasProfile parent ensures request.user has a profile
+
+    def has_object_permission(self, request, view, obj):
+        return obj.profile.user == request.user
+
+
+class WantsCreate(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        logger.warn(view.action)
+        return view.action == 'create'
+
+
+class WantsUpdate(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return view.action == 'update'
+
+
+class WantsList(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return view.action == 'list'
+
+
+class WantsRetrieve(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return view.action == 'retrieve'
+
+
+class WantsDestroy(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return view.action == 'destroy'
 
 
 class IsAdminElseCreateUpdateRetrieveDestroyOnly(permissions.BasePermission):
