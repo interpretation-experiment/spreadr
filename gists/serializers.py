@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from allauth.account.models import EmailAddress
 
-from gists.models import (Sentence, Tree, Profile, LANGUAGE_CHOICES,
-                          OTHER_LANGUAGE, DEFAULT_LANGUAGE, BUCKET_CHOICES)
+from gists.models import (Sentence, Tree, Profile, Questionnaire,
+                          LANGUAGE_CHOICES, OTHER_LANGUAGE,
+                          DEFAULT_LANGUAGE, BUCKET_CHOICES)
 
 
 class SentenceSerializer(serializers.ModelSerializer):
@@ -112,6 +113,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         source='sentences.count'
     )
     mothertongue = serializers.ChoiceField(choices=LANGUAGE_CHOICES)
+    questionnaire = serializers.PrimaryKeyRelatedField(read_only=True)
+    questionnaire_url = serializers.HyperlinkedRelatedField(
+        source='questionnaire',
+        view_name='questionnaire-detail',
+        read_only=True
+    )
     available_trees_counts = serializers.SerializerMethodField()
 
     def get_available_trees_counts(self, obj):
@@ -170,44 +177,42 @@ class ProfileSerializer(serializers.ModelSerializer):
             'mothertongue',
             'trained_reformulations',
 
+            'questionnaire', 'questionnaire_url',
+
             'introduced_exp_home', 'introduced_exp_play',
             'introduced_play_home', 'introduced_play_play',
         )
         read_only_fields = (
-            'user', 'suggestion_credit',
-            'questionnaire_done',
+            'created',
+            'user',
+            'suggestion_credit',
         )
 
 
-class PrivateProfileSerializer(ProfileSerializer):
+class QuestionnaireSerializer(serializers.ModelSerializer):
+    questionnaire_url = serializers.HyperlinkedRelatedField(
+        source='questionnaire',
+        view_name='questionnaire-detail',
+        read_only=True
+    )
+    profile_url = serializers.HyperlinkedRelatedField(
+        source='profile',
+        view_name='profile-view',
+        read_only=True
+    )
+
     class Meta:
-        model = Profile
+        model = Questionnaire
         fields = (
             'id', 'url', 'created',
-            'user', 'user_url', 'user_username',
-
-            'trees', 'trees_count',
-            'sentences', 'sentences_count',
-            'reformulations_count',
-
-            'suggestion_credit', 'next_credit_in',
-            'available_trees_counts',
-
-            'mothertongue',
-            'trained_reformulations',
-
-            # Private data
+            'profile', 'profile_url',
             'age', 'gender',
             'isco_major', 'isco_submajor', 'isco_minor',
             'naive', 'naive_detail',
-            'questionnaire_done',
-
-            'introduced_exp_home', 'introduced_exp_play',
-            'introduced_play_home', 'introduced_play_play',
         )
         read_only_fields = (
-            'user', 'suggestion_credit',
-            'questionnaire_done',
+            'created',
+            'profile',
         )
 
 

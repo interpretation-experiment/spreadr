@@ -12,12 +12,13 @@ from rest_framework.permissions import IsAuthenticated
 from allauth.account.models import EmailAddress
 
 from gists.filters import TreeFilter
-from gists.models import (Sentence, Tree, Profile, GistsConfiguration,
+from gists.models import (Sentence, Tree, Profile, Questionnaire,
+                          GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE,
                           GENDER_CHOICES, ISCO_MAJOR_CHOICES,
                           ISCO_SUBMAJOR_CHOICES, ISCO_MINOR_CHOICES)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
-                               ProfileSerializer, PrivateProfileSerializer,
+                               ProfileSerializer, QuestionnaireSerializer,
                                UserSerializer, PrivateUserSerializer,
                                EmailAddressSerializer)
 from gists.permissions import (IsAdminElseCreateUpdateRetrieveDestroyOnly,
@@ -138,6 +139,7 @@ class ProfileViewSet(mixins.CreateModelMixin,
     and modification.
     """
     queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
     permission_classes = (IsAuthenticatedWithoutProfileElseReadUpdateOnly,
                           IsAdminOrObjectHasSelfElseReadOnly,)
     ordering = ('user__username',)
@@ -151,21 +153,21 @@ class ProfileViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    def get_serializer_class(self):
-        user = self.request.user
 
-        # Staff can see everything
-        if user.is_staff:
-            return PrivateProfileSerializer
+class QuestionnaireViewSet(mixins.CreateModelMixin,
+                           mixins.RetrieveModelMixin,
+                           mixins.ListModelMixin,
+                           viewsets.GenericViewSet):
+    """Questionnaire list and detail, authenticated read,
+    authenticated creation."""
+    queryset = Questionnaire.objects.all()
+    serializer_class = QuestionnaireSerializer
+    #permission_classes = (IsAuthenticated,
+                          #IsWithProfileWithoutQuestionnaireElseReadOnly,
+                          #IsAdminOrHasSelfProfileElseCreateOnly,)
 
-        # Self in detail view can see privately
-        if self.action == 'retrieve':
-            obj = self.get_object()
-            if user == obj.user:
-                return PrivateProfileSerializer
-
-        # The rest sees publicly
-        return ProfileSerializer
+    def perform_create(self, serializer):
+        serializer.save(profile=self.request.user.profile)
 
 
 class UserViewSet(mixins.RetrieveModelMixin,

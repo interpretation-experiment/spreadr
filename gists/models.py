@@ -307,21 +307,6 @@ class Profile(models.Model):
 
     mothertongue = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
     trained_reformulations = models.BooleanField(default=False)
-    age = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(3), MaxValueValidator(120)], null=True)
-    gender = models.CharField(max_length=100, choices=GENDER_CHOICES,
-                              blank=True, default="")
-    isco_major = models.CharField(max_length=5,
-                                  choices=ISCO_MAJOR_CHOICES,
-                                  blank=True, default="")
-    isco_submajor = models.CharField(max_length=5,
-                                     choices=ISCO_SUBMAJOR_CHOICES,
-                                     blank=True, default="")
-    isco_minor = models.CharField(max_length=5,
-                                  choices=ISCO_MINOR_CHOICES,
-                                  blank=True, default="")
-    naive = models.NullBooleanField()
-    naive_detail = models.CharField(max_length=500, blank=True, default="")
 
     introduced_exp_home = models.BooleanField(default=False)
     introduced_exp_play = models.BooleanField(default=False)
@@ -358,12 +343,16 @@ class Profile(models.Model):
         n_created = self.sentences.filter(parent=None).count()
         return self.sentences.count() - n_created
 
-    @property
-    def questionnaire_done(self):
-        # naive_detail is optional
-        return ((self.age is not None) and
-                (len(self.gender) > 0) and
-                (len(self.isco_major) > 0) and
-                (len(self.isco_submajor) > 0) and
-                (len(self.isco_minor) > 0) and
-                (self.naive is not None))
+
+class Questionnaire(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    profile = models.OneToOneField('Profile')
+    age = models.PositiveSmallIntegerField(validators=[MinValueValidator(3),
+                                                       MaxValueValidator(120)])
+    gender = models.CharField(max_length=100, choices=GENDER_CHOICES)
+    isco_major = models.CharField(max_length=5, choices=ISCO_MAJOR_CHOICES)
+    isco_submajor = models.CharField(max_length=5,
+                                     choices=ISCO_SUBMAJOR_CHOICES)
+    isco_minor = models.CharField(max_length=5, choices=ISCO_MINOR_CHOICES)
+    naive = models.BooleanField(default=True)
+    naive_detail = models.CharField(max_length=500, blank=True, default="")
