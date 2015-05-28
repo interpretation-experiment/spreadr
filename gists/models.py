@@ -310,18 +310,18 @@ class Profile(models.Model):
     age = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(3), MaxValueValidator(120)], null=True)
     gender = models.CharField(max_length=100, choices=GENDER_CHOICES,
-                              blank=True)
+                              blank=True, default="")
     isco_major = models.CharField(max_length=5,
                                   choices=ISCO_MAJOR_CHOICES,
-                                  blank=True)
+                                  blank=True, default="")
     isco_submajor = models.CharField(max_length=5,
                                      choices=ISCO_SUBMAJOR_CHOICES,
-                                     blank=True)
+                                     blank=True, default="")
     isco_minor = models.CharField(max_length=5,
                                   choices=ISCO_MINOR_CHOICES,
-                                  blank=True)
+                                  blank=True, default="")
     naive = models.NullBooleanField()
-    naive_detail = models.CharField(max_length=500, blank=True)
+    naive_detail = models.CharField(max_length=500, blank=True, default="")
 
     introduced_exp_home = models.BooleanField(default=False)
     introduced_exp_play = models.BooleanField(default=False)
