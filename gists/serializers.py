@@ -119,7 +119,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         view_name='questionnaire-detail',
         read_only=True
     )
+    questionnaire_done = serializers.SerializerMethodField()
     available_trees_counts = serializers.SerializerMethodField()
+
+    def get_questionnaire_done(self, obj):
+        return (hasattr(obj, 'questionnaire') and
+                obj.questionnaire is not None)
 
     def get_available_trees_counts(self, obj):
         """Other- and mothertongue-aware count of available trees, per bucket.
@@ -178,6 +183,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'trained_reformulations',
 
             'questionnaire', 'questionnaire_url',
+            'questionnaire_done',
 
             'introduced_exp_home', 'introduced_exp_play',
             'introduced_play_home', 'introduced_play_play',
