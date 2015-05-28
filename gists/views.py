@@ -23,16 +23,9 @@ from gists.serializers import (SentenceSerializer, TreeSerializer,
                                UserSerializer, PrivateUserSerializer,
                                EmailAddressSerializer)
 from gists.permissions import (IsAdmin, HasProfile, HasQuestionnaire,
-                               ObjUserIsSelf, ObjProfileIsSelf,
+                               ObjIsSelf, ObjUserIsSelf,
                                WantsCreate, WantsUpdate, WantsList,
-                               WantsRetrieve, WantsDestroy,
-                               IsAdminElseCreateUpdateRetrieveDestroyOnly,
-                               IsAdminOrHasSelf,
-                               IsAdminOrSelfElseReadOnly,
-                               IsAdminOrObjectHasSelfElseReadOnly,
-                               IsAuthenticatedWithoutProfileElseReadUpdateOnly,
-                               IsAuthenticatedWithProfile,
-                               IsAuthenticatedWithProfileElseReadOnly,)
+                               WantsRetrieve, WantsDestroy,)
 
 
 def remap_choices(choices):
@@ -43,11 +36,6 @@ def is_user_authenticated_with_profile(user):
     return (user.is_authenticated() and
             hasattr(user, 'profile') and
             user.profile is not None)
-
-
-def profile_has_questionnaire(profile):
-    return (hasattr(profile, 'questionnaire') and
-            profile.questionnaire is not None)
 
 
 def confirm_email(request, key=None):
@@ -121,7 +109,12 @@ class SentenceViewSet(mixins.CreateModelMixin,
     """
     queryset = Sentence.objects.all()
     serializer_class = SentenceSerializer
-    permission_classes = (IsAuthenticatedWithProfileElseReadOnly,)
+    permission_classes = (
+        # Anybody can read
+        C(WantsRetrieve) | C(WantsList) |
+        # Creation needs authentication with profile
+        (C(WantsCreate) & C(IsAuthenticated) & C(HasProfile)),
+    )
     ordering = ('-created',)
 
     @classmethod
@@ -158,11 +151,19 @@ class ProfileViewSet(mixins.CreateModelMixin,
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = (IsAuthenticatedWithoutProfileElseReadUpdateOnly,
-                          IsAdminOrObjectHasSelfElseReadOnly,)
+    permission_classes = (
+        # Anybody can read
+        C(WantsRetrieve) | C(WantsList) |
+        # Other operations need authentication
+        (C(IsAuthenticated) &
+         # Creating is only if you have no profile
+         ((C(WantsCreate) & ~C(HasProfile)) |
+          # Update is only for admin or owner
+          (C(WantsUpdate) & (C(IsAdmin) | C(ObjUserIsSelf))))),
+    )
     ordering = ('user__username',)
 
-    @list_route(permission_classes=[IsAuthenticatedWithProfile])
+    @list_route(permission_classes=[C(IsAuthenticated) & C(HasProfile)])
     def me(self, request, format=None):
         serializer = ProfileSerializer(request.user.profile,
                                        context={'request': request})
@@ -180,20 +181,23 @@ class QuestionnaireViewSet(mixins.CreateModelMixin,
     authenticated creation."""
     queryset = Questionnaire.objects.all()
     serializer_class = QuestionnaireSerializer
-    permission_classes = \
-        ((C(IsAuthenticated) &
-          (C(WantsList) |
-           (C(WantsCreate) & C(HasProfile) & ~C(HasQuestionnaire)) |
-           (C(WantsRetrieve) & (C(IsAdmin) | C(ObjProfileIsSelf))))),)
+    permission_classes = (
+        # All operations need authentication
+        (C(IsAuthenticated) &
+         # Reading is ok for all, since the queryset gets reduced to
+         # the user's questionnaire (or all if the user is admin)
+         (C(WantsRetrieve) | C(WantsList) |
+          # Creation needs a profile without a questionnaire
+          (C(WantsCreate) & C(HasProfile) & ~C(HasQuestionnaire)))),
+    )
+    ordering = ('-created',)
 
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
             return self.queryset
         elif is_user_authenticated_with_profile(user):
-            profile = user.profile
-            if profile_has_questionnaire(profile):
-                return self.queryset.filter(pk=user.profile.questionnaire.pk)
+            return self.queryset.filter(profile=user.profile)
 
         return self.queryset.none()
 
@@ -210,7 +214,12 @@ class UserViewSet(mixins.RetrieveModelMixin,
     (everything if staff, only username if self).
     """
     queryset = User.objects.all()
-    permission_classes = (IsAdminOrSelfElseReadOnly,)
+    permission_classes = (
+        # Anybody can read
+        C(WantsRetrieve) | C(WantsList) |
+        # Update is only for admin or self
+        (C(WantsUpdate) & (C(IsAdmin) | C(ObjIsSelf))),
+    )
     ordering = ('username',)
 
     @list_route(permission_classes=[IsAuthenticated])
@@ -268,10 +277,26 @@ class EmailAddressViewSet(mixins.CreateModelMixin,
     """
     queryset = EmailAddress.objects.all()
     serializer_class = EmailAddressSerializer
-    permission_classes = (IsAuthenticated,
-                          IsAdminElseCreateUpdateRetrieveDestroyOnly,
-                          IsAdminOrHasSelf,)
+    permission_classes = (
+        # All operations need authentication
+        (C(IsAuthenticated) &
+         # Reading is ok for all, since the queryset gets reduced to
+         # the user's emails (or all if the user is admin)
+         (C(WantsRetrieve) | C(WantsList) |
+          # Creation is also ok for all
+          C(WantsCreate) |
+          # Update and destroy are restricted to admin and self
+          (C(WantsUpdate) & (C(IsAdmin) | C(ObjUserIsSelf))) |
+          (C(WantsDestroy) & (C(IsAdmin) | C(ObjUserIsSelf))))),
+    )
     ordering = ('user__username',)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return self.queryset
+
+        return self.queryset.filter(user=user)
 
     @detail_route(methods=['post'])
     def verify(self, request, pk=None):
