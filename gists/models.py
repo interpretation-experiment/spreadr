@@ -355,4 +355,4 @@ class Questionnaire(models.Model):
                                      choices=ISCO_SUBMAJOR_CHOICES)
     isco_minor = models.CharField(max_length=5, choices=ISCO_MINOR_CHOICES)
     naive = models.BooleanField(default=True)
-    naive_detail = models.CharField(max_length=500)
+    naive_detail = models.CharField(max_length=500, blank=True, default="")
