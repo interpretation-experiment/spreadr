@@ -202,6 +202,16 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    def validate(self, data):
+        has_isco_default = (data.get('isco_major', '')[:1] == '-' or
+                            data.get('isco_submajor', '')[:1] == '-' or
+                            data.get('isco_minor', '')[:1] == '-')
+        if has_isco_default and len(data.get('isco_freetext', '')) < 3:
+            raise serializers.ValidationError(
+                "Enter at least three characters in your activity detail "
+                "if you don't describe it by categories")
+        return data
+
     class Meta:
         model = Questionnaire
         fields = (
