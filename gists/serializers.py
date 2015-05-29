@@ -208,8 +208,9 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
             'id', 'url', 'created',
             'profile', 'profile_url',
             'age', 'gender',
-            'isco_major', 'isco_submajor', 'isco_minor',
             'naive', 'naive_detail',
+            'isco_major', 'isco_submajor', 'isco_minor',
+            'isco_freetext',
         )
         read_only_fields = (
             'created',

@@ -25,6 +25,7 @@ GENDER_CHOICES = [('female', 'Female'),
                   ('male', 'Male'),
                   ('other', 'Other')]
 ISCO_MAJOR_CHOICES = [
+    ('-', 'None'),
     ('1', 'Managers'),
     ('2', 'Professionals'),
     ('3', 'Technicians and associate professionals'),
@@ -37,6 +38,7 @@ ISCO_MAJOR_CHOICES = [
     ('0', 'Armed forces occupations'),
 ]
 ISCO_SUBMAJOR_CHOICES = [
+    ('--', 'None'),
     ('11', 'Chief executives, senior officials and legislators'),
     ('12', 'Administrative and commercial managers'),
     ('13', 'Production and specialized services managers'),
@@ -83,6 +85,7 @@ ISCO_SUBMAJOR_CHOICES = [
     ('03', 'Armed forces occupations, other ranks'),
 ]
 ISCO_MINOR_CHOICES = [
+    ('---', 'None'),
     ('111', 'Legislators and senior officials'),
     ('112', 'Managing directors and chief executives'),
     ('121', 'Business services and administration managers'),
@@ -347,12 +350,16 @@ class Profile(models.Model):
 class Questionnaire(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     profile = models.OneToOneField('Profile')
+
     age = models.PositiveSmallIntegerField(validators=[MinValueValidator(3),
                                                        MaxValueValidator(120)])
     gender = models.CharField(max_length=100, choices=GENDER_CHOICES)
+
+    naive = models.BooleanField(default=True)
+    naive_detail = models.CharField(max_length=500, blank=True, default="")
+
     isco_major = models.CharField(max_length=5, choices=ISCO_MAJOR_CHOICES)
     isco_submajor = models.CharField(max_length=5,
                                      choices=ISCO_SUBMAJOR_CHOICES)
     isco_minor = models.CharField(max_length=5, choices=ISCO_MINOR_CHOICES)
-    naive = models.BooleanField(default=True)
-    naive_detail = models.CharField(max_length=500, blank=True, default="")
+    isco_freetext = models.CharField(max_length=500, blank=True, default="")
