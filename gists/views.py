@@ -85,6 +85,8 @@ class Meta(generics.GenericAPIView):
             'experiment_work': config.experiment_work,
             'training_work': config.training_work,
             'tree_cost': config.tree_cost,
+            'reading_span_words_count': config.reading_span_words_count,
+            'reading_span_trials_count': config.reading_span_trials_count,
 
             'gender_choices': remap_choices(GENDER_CHOICES),
             'isco_major_choices': remap_choices(ISCO_MAJOR_CHOICES),
