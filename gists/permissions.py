@@ -24,6 +24,15 @@ class HasQuestionnaire(HasProfile):
                 and request.user.profile.questionnaire is not None)
 
 
+class HasReadingSpan(HasProfile):
+
+    def has_permission(self, request, view):
+        # The HasProfile parent called here ensures request.user has a profile
+        return (super(HasReadingSpan, self).has_permission(request, view)
+                and hasattr(request.user.profile, 'reading_span')
+                and request.user.profile.reading_span is not None)
+
+
 class ObjIsSelf(permissions.BasePermission):
 
     def has_permission(self, request, view):

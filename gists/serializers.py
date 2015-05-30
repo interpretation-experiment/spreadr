@@ -4,6 +4,7 @@ from rest_framework import serializers
 from allauth.account.models import EmailAddress
 
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
+                          ReadingSpan,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE,
                           DEFAULT_LANGUAGE, BUCKET_CHOICES)
 
@@ -120,11 +121,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True
     )
     questionnaire_done = serializers.SerializerMethodField()
+    reading_span = serializers.PrimaryKeyRelatedField(read_only=True)
+    reading_span_url = serializers.HyperlinkedRelatedField(
+        source='reading_span',
+        view_name='reading-span-detail',
+        read_only=True
+    )
+    reading_span_done = serializers.SerializerMethodField()
     available_trees_counts = serializers.SerializerMethodField()
 
     def get_questionnaire_done(self, obj):
         return (hasattr(obj, 'questionnaire') and
                 obj.questionnaire is not None)
+
+    def get_reading_span_done(self, obj):
+        return (hasattr(obj, 'reading_span') and
+                obj.reading_span is not None)
 
     def get_available_trees_counts(self, obj):
         """Other- and mothertongue-aware count of available trees, per bucket.
@@ -185,6 +197,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             'questionnaire', 'questionnaire_url',
             'questionnaire_done',
 
+            'reading_span', 'reading_span_url',
+            'reading_span_done',
+
             'introduced_exp_home', 'introduced_exp_play',
             'introduced_play_home', 'introduced_play_play',
         )
@@ -221,6 +236,36 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
             'naive', 'naive_detail',
             'isco_major', 'isco_submajor', 'isco_minor',
             'isco_freetext',
+        )
+        read_only_fields = (
+            'created',
+            'profile',
+        )
+
+
+class ReadingSpanSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='reading-span-detail')
+    profile_url = serializers.HyperlinkedRelatedField(
+        source='profile',
+        view_name='profile-detail',
+        read_only=True
+    )
+
+    def validate(self, data):
+        span = data['span']
+        words_count = data['words_count']
+        if span > words_count:
+            raise serializers.ValidationError((
+                "Reading-span ({}) can't be more than the number of "
+                "words it was tested on ({})").format(span, words_count))
+        return data
+
+    class Meta:
+        model = ReadingSpan
+        fields = (
+            'id', 'url', 'created',
+            'profile', 'profile_url',
+            'words_count', 'span',
         )
         read_only_fields = (
             'created',

@@ -178,7 +178,8 @@ ISCO_MINOR_CHOICES = [
     ('634', 'Subsistence fishers, hunters, trappers and gatherers'),
     ('711', 'Building frame and related trades workers'),
     ('712', 'Building finishers and related trades workers'),
-    ('713', 'Painters, building structure cleaners and related trades workers'),
+    ('713', 'Painters, building structure cleaners and related '
+            'trades workers'),
     ('721', 'Sheet and structural metal workers, moulders and welders, '
             'and related workers'),
     ('722', 'Blacksmiths, toolmakers and related trades workers'),
@@ -363,3 +364,11 @@ class Questionnaire(models.Model):
                                      choices=ISCO_SUBMAJOR_CHOICES)
     isco_minor = models.CharField(max_length=5, choices=ISCO_MINOR_CHOICES)
     isco_freetext = models.CharField(max_length=500, blank=True, default="")
+
+
+class ReadingSpan(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    profile = models.OneToOneField('Profile', related_name="reading_span")
+    words_count = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(3)])
+    span = models.FloatField(validators=[MinValueValidator(0)])

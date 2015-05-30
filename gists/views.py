@@ -14,16 +14,17 @@ from rest_condition import C
 
 from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
-                          GistsConfiguration,
+                          ReadingSpan, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE,
                           GENDER_CHOICES, ISCO_MAJOR_CHOICES,
                           ISCO_SUBMAJOR_CHOICES, ISCO_MINOR_CHOICES)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, QuestionnaireSerializer,
+                               ReadingSpanSerializer,
                                UserSerializer, PrivateUserSerializer,
                                EmailAddressSerializer)
 from gists.permissions import (IsAdmin, HasProfile, HasQuestionnaire,
-                               ObjIsSelf, ObjUserIsSelf,
+                               HasReadingSpan, ObjIsSelf, ObjUserIsSelf,
                                WantsCreate, WantsUpdate, WantsList,
                                WantsRetrieve, WantsDestroy,)
 
@@ -56,6 +57,8 @@ class APIRoot(generics.GenericAPIView):
             'profiles': reverse('profile-list', request=request,
                                 format=format),
             'questionnaires': reverse('questionnaire-list', request=request,
+                                      format=format),
+            'reading-spans': reverse('reading-span-list', request=request,
                                       format=format),
             'users': reverse('user-list', request=request, format=format),
             'emails': reverse('email-list', request=request, format=format),
@@ -189,6 +192,38 @@ class QuestionnaireViewSet(mixins.CreateModelMixin,
          (C(WantsRetrieve) | C(WantsList) |
           # Creation needs a profile without a questionnaire
           (C(WantsCreate) & C(HasProfile) & ~C(HasQuestionnaire)))),
+    )
+    ordering = ('-created',)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return self.queryset
+        elif is_user_authenticated_with_profile(user):
+            return self.queryset.filter(profile=user.profile)
+
+        return self.queryset.none()
+
+    def perform_create(self, serializer):
+        serializer.save(profile=self.request.user.profile)
+
+
+class ReadingSpanViewSet(mixins.CreateModelMixin,
+                         mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                         viewsets.GenericViewSet):
+    """Reading-span list and detail, authenticated read,
+    authenticated creation."""
+    queryset = ReadingSpan.objects.all()
+    serializer_class = ReadingSpanSerializer
+    permission_classes = (
+        # All operations need authentication
+        (C(IsAuthenticated) &
+         # Reading is ok for all, since the queryset gets reduced to
+         # the user's reading-span (or all if the user is admin)
+         (C(WantsRetrieve) | C(WantsList) |
+          # Creation needs a profile without a questionnaire
+          (C(WantsCreate) & C(HasProfile) & ~C(HasReadingSpan)))),
     )
     ordering = ('-created',)
 
