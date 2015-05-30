@@ -226,18 +226,27 @@ ISCO_MINOR_CHOICES = [
 class GistsConfiguration(SingletonModel):
     base_credit = models.PositiveIntegerField(
         default=settings.DEFAULT_BASE_CREDIT)
+
     target_branch_count = models.PositiveIntegerField(
         default=settings.DEFAULT_TARGET_BRANCH_COUNT,
         validators=[MinValueValidator(1)])
     target_branch_depth = models.PositiveIntegerField(
         default=settings.DEFAULT_TARGET_BRANCH_DEPTH,
         validators=[MinValueValidator(2)])
+
     experiment_work = models.PositiveIntegerField(
         default=settings.DEFAULT_EXPERIMENT_WORK,
         validators=[MinValueValidator(1)])
     training_work = models.PositiveIntegerField(
         default=settings.DEFAULT_TRAINING_WORK,
         validators=[MinValueValidator(1)])
+
+    reading_span_words_count = models.PositiveSmallIntegerField(
+        default=settings.DEFAULT_READING_SPAN_WORDS_COUNT,
+        validators=[MinValueValidator(3)])
+    reading_span_trials_count = models.PositiveSmallIntegerField(
+        default=settings.DEFAULT_READING_SPAN_TRIALS_COUNT,
+        validators=[MinValueValidator(3)])
 
     @property
     def tree_cost(self):
