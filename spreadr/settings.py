@@ -77,7 +77,6 @@ TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
 REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
     'PAGINATE_BY_PARAM': 'page_size',
-    'DEFAULT_PAGINATION_CLASS': 'glue.pagination.PageCountingPagination',
     'MAX_PAGINATE_BY': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
