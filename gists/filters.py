@@ -8,6 +8,7 @@ from gists.models import (Profile, Tree, LANGUAGE_CHOICES, OTHER_LANGUAGE,
 
 
 class TreeFilter(django_filters.FilterSet):
+    profile = django_filters.MethodFilter(action='filter_profile')
     root_language = django_filters.ChoiceFilter(name='root__language',
                                                 choices=LANGUAGE_CHOICES)
     root_bucket = django_filters.ChoiceFilter(name='root__bucket',
@@ -27,6 +28,13 @@ class TreeFilter(django_filters.FilterSet):
     shortest_branch_depth_lte = django_filters.MethodFilter(
         action='filter_shortest_branch_depth_lte')
     sample = django_filters.MethodFilter(action='filter_sample')
+
+    def filter_profile(self, queryset, value):
+        try:
+            profile = Profile.objects.get(pk=value)
+            return queryset.filter(profiles=profile).distinct()
+        except Profile.DoesNotExist:
+            return queryset
 
     def filter_untouched_by_profile(self, queryset, value):
         try:
@@ -104,6 +112,7 @@ class TreeFilter(django_filters.FilterSet):
     class Meta:
         model = Tree
         fields = (
+            'profile',
             'root_language',
             'root_bucket',
             'untouched_by_profile',
