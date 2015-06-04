@@ -61,7 +61,7 @@ class SentenceSerializer(serializers.ModelSerializer):
             'time_proportion', 'time_used', 'time_allotted',
         )
         read_only_fields = (
-            'time_proportion',
+            'time_used',
         )
 
 
