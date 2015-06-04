@@ -42,6 +42,12 @@ class SentenceSerializer(serializers.ModelSerializer):
         source='children.count'
     )
 
+    def validate(self, data):
+        if data['time_used'] > data['time_allotted']:
+            raise serializers.ValidationError(
+                "Time used can't be greater than time allotted")
+        return data
+
     class Meta:
         model = Sentence
         fields = (
@@ -51,7 +57,11 @@ class SentenceSerializer(serializers.ModelSerializer):
             'profile', 'profile_url', 'profile_username',
             'parent', 'parent_url',
             'children', 'children_count',
-            'text', 'time', 'language', 'bucket',
+            'text', 'language', 'bucket',
+            'time_proportion', 'time_used', 'time_allotted',
+        )
+        read_only_fields = (
+            'time_proportion',
         )
 
 

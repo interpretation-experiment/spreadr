@@ -266,13 +266,18 @@ class Sentence(models.Model):
     parent = models.ForeignKey('Sentence', related_name='children', null=True)
     tree_as_root = models.OneToOneField('Tree', related_name='root', null=True)
     text = models.CharField(max_length=5000)
-    time = models.FloatField(validators=[MinValueValidator(0),
-                                         MaxValueValidator(1)])
+    time_used = models.FloatField(validators=[MinValueValidator(0)])
+    time_allotted = models.FloatField(validators=[MinValueValidator(0)])
     language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
     bucket = models.CharField(choices=BUCKET_CHOICES, max_length=100)
 
     class Meta:
         ordering = ('-created',)
+
+    @property
+    def time_proportion(self):
+        return (0 if self.time_allotted == 0
+                else self.time_used / self.time_allotted)
 
     def __str__(self):
         max_length = 20
