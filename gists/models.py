@@ -276,7 +276,7 @@ class Sentence(models.Model):
 
     @property
     def time_proportion(self):
-        return (0 if self.time_allotted == 0
+        return (0.0 if self.time_allotted == 0
                 else self.time_used / self.time_allotted)
 
     def __str__(self):
