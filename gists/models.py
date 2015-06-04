@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 import networkx as nx
+import numpy as np
+from numpy.random import shuffle
 
 from solo.models import SingletonModel
 from .utils import memoize, levenshtein
@@ -273,14 +275,39 @@ class Sentence(models.Model):
     language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
     bucket = models.CharField(choices=BUCKET_CHOICES, max_length=100)
 
+    levenshtein = memoize(levenshtein)
+
     class Meta:
         ordering = ('-created',)
 
     @classmethod
-    def profiles_mean_time_proportions(cls):
+    def mean_time_proportion_per_profile(cls):
         profiles_means = Sentence.objects.values('profile').annotate(
             mean=models.Avg('time_proportion')).order_by()
-        return [profile_mean['mean'] for profile_mean in profiles_means]
+
+        means = {}
+        for profile_mean in profiles_means:
+            means[profile_mean['profile']] = profile_mean['mean']
+
+        return means
+
+    @classmethod
+    def mean_errs_per_profile(cls):
+        texts = Sentence.objects.filter(
+            parent__isnull=False).values('profile', 'text', 'parent__text')
+
+        errs = {}
+        for item in texts:
+            profile = item['profile']
+            if profile not in errs:
+                errs[profile] = []
+            distance = cls.levenshtein(item['parent__text'], item['text'])
+            errs[profile].append(distance / len(item['parent__text']))
+
+        for profile, pErrs in errs.items():
+            errs[profile] = np.mean(pErrs)
+
+        return errs
 
     @property
     def time_used(self):
@@ -340,16 +367,13 @@ class Profile(models.Model):
     introduced_play_home = models.BooleanField(default=False)
     introduced_play_play = models.BooleanField(default=False)
 
-    levenshtein = memoize(levenshtein)
-
-    @classmethod
-    def mean_diff_performances(cls):
-        return 0
-
     @classmethod
     def reading_spans(cls):
-        return Profile.objects.filter(
-            reading_span__isnull=False).values_list('reading_span', flat=True)
+        spans = np.array(Profile.objects
+                         .filter(reading_span__isnull=False)
+                         .values_list('reading_span__span', flat=True))
+        shuffle(spans)
+        return spans
 
     @property
     def distinct_trees(self):

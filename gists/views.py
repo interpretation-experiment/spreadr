@@ -128,10 +128,9 @@ class Stats(views.APIView):
     def update(cls):
         cls.stats = {
             'updated': now(),
-            'profiles_mean_diff_performances':
-                Profile.mean_diff_performances(),
-            'profiles_mean_time_proportions':
-                Sentence.profiles_mean_time_proportions(),
+            'mean_errs_per_profile': Sentence.mean_errs_per_profile(),
+            'mean_time_proportion_per_profile':
+                Sentence.mean_time_proportion_per_profile(),
             'profiles_reading_spans': Profile.reading_spans()
         }
 
