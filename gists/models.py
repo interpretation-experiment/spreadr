@@ -266,6 +266,8 @@ class Sentence(models.Model):
     parent = models.ForeignKey('Sentence', related_name='children', null=True)
     tree_as_root = models.OneToOneField('Tree', related_name='root', null=True)
     text = models.CharField(max_length=5000)
+    time = models.FloatField(validators=[MinValueValidator(0),
+                                         MaxValueValidator(1)])
     language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
     bucket = models.CharField(choices=BUCKET_CHOICES, max_length=100)
 

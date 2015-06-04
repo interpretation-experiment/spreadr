@@ -51,7 +51,7 @@ class SentenceSerializer(serializers.ModelSerializer):
             'profile', 'profile_url', 'profile_username',
             'parent', 'parent_url',
             'children', 'children_count',
-            'text', 'language', 'bucket',
+            'text', 'time', 'language', 'bucket',
         )
 
 
