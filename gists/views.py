@@ -1,10 +1,17 @@
+from datetime import timedelta
+try:
+    from django.utils.timezone import now
+except ImportError:
+    from datetime import datetime
+    now = datetime.now
+
 from django.contrib.auth.models import User
 from django.db.models import Count
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.sites.shortcuts import get_current_site
-from rest_framework import viewsets, mixins, generics, filters
+from rest_framework import viewsets, mixins, filters, views
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -25,6 +32,7 @@ from gists.serializers import (SentenceSerializer, TreeSerializer,
                                EmailAddressSerializer)
 from gists.permissions import (IsAdmin, HasProfile, HasQuestionnaire,
                                HasReadingSpan, ObjIsSelf, ObjUserIsSelf,
+                               WantsSafe, WantsPost,
                                WantsCreate, WantsUpdate, WantsList,
                                WantsRetrieve, WantsDestroy,)
 
@@ -45,7 +53,7 @@ def confirm_email(request, key=None):
     return redirect(url)
 
 
-class APIRoot(generics.GenericAPIView):
+class APIRoot(views.APIView):
     """
     API Root.
     """
@@ -59,14 +67,15 @@ class APIRoot(generics.GenericAPIView):
             'questionnaires': reverse('questionnaire-list', request=request,
                                       format=format),
             'reading-spans': reverse('reading-span-list', request=request,
-                                      format=format),
+                                     format=format),
             'users': reverse('user-list', request=request, format=format),
             'emails': reverse('email-list', request=request, format=format),
             'meta': reverse('meta', request=request, format=format),
+            'stats': reverse('stats', request=request, format=format),
         })
 
 
-class Meta(generics.GenericAPIView):
+class Meta(views.APIView):
     """
     Meta information about the server.
     """
@@ -93,6 +102,43 @@ class Meta(generics.GenericAPIView):
             'isco_submajor_choices': remap_choices(ISCO_SUBMAJOR_CHOICES),
             'isco_minor_choices': remap_choices(ISCO_MINOR_CHOICES),
         })
+
+
+class Stats(views.APIView):
+    """
+    Public descriptive statistics about the data, with a cooled-down update.
+    """
+
+    COOLDOWN_PERIOD = timedelta(minutes=3)
+    permission_classes = (
+        # Anybody can read
+        C(WantsSafe) |
+        # Forcing the update is only for admins
+        (C(WantsPost) & C(IsAdmin)),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(Stats, self).__init__(*args, **kwargs)
+        self.update()
+
+    def update(self):
+        self.stats = {
+            'updated': now(),
+            'profile_mean_diff_performances': Profile.mean_diff_performances(),
+            'profile_mean_time_proportions': Profile.mean_time_proportions(),
+            'profile_reading_spans': Profile.reading_spans()
+        }
+
+    def get(self, request, format=None):
+        """Descriptive statistics about the data, with cooled-down update."""
+        if now() - self.COOLDOWN_PERIOD > self.stats['updated']:
+            self.update()
+        return Response(self.stats)
+
+    def post(self, request, format=None):
+        """Force update of the statistics, admin-only."""
+        self.update()
+        return Response(self.stats)
 
 
 class TreeViewSet(viewsets.ReadOnlyModelViewSet):

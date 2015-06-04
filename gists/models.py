@@ -333,6 +333,18 @@ class Profile(models.Model):
     introduced_play_home = models.BooleanField(default=False)
     introduced_play_play = models.BooleanField(default=False)
 
+    @classmethod
+    def mean_diff_performances(cls):
+        return 0
+
+    @classmethod
+    def mean_time_proportions(cls):
+        return 0
+
+    @classmethod
+    def reading_spans(cls):
+        return 0
+
     @property
     def distinct_trees(self):
         return self.trees.distinct()

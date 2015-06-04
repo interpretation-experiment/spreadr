@@ -62,6 +62,18 @@ class ObjProfileIsSelf(HasProfile):
             return False
 
 
+class WantsSafe(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return request.method in permissions.SAFE_METHODS
+
+
+class WantsPost(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return request.method == 'POST'
+
+
 class WantsCreate(permissions.BasePermission):
 
     def has_permission(self, request, view):
