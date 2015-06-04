@@ -4,6 +4,7 @@ from django.conf import settings
 import networkx as nx
 
 from solo.models import SingletonModel
+from .utils import memoize, levenshtein
 
 
 DEFAULT_LANGUAGE = 'english'
@@ -318,7 +319,7 @@ class Tree(models.Model):
 
     @property
     def distinct_profiles(self):
-        return self.profiles.distinct()
+        return self.profiles.distinct().order_by()
 
 
 class Profile(models.Model):
@@ -333,6 +334,8 @@ class Profile(models.Model):
     introduced_play_home = models.BooleanField(default=False)
     introduced_play_play = models.BooleanField(default=False)
 
+    levenshtein = memoize(levenshtein)
+
     @classmethod
     def mean_diff_performances(cls):
         return 0
@@ -343,11 +346,12 @@ class Profile(models.Model):
 
     @classmethod
     def reading_spans(cls):
-        return 0
+        return Profile.objects.filter(
+            reading_span__isnull=False).values_list('reading_span', flat=True)
 
     @property
     def distinct_trees(self):
-        return self.trees.distinct()
+        return self.trees.distinct().order_by()
 
     @property
     def suggestion_credit(self):
