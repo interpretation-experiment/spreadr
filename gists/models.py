@@ -276,6 +276,12 @@ class Sentence(models.Model):
     class Meta:
         ordering = ('-created',)
 
+    @classmethod
+    def profiles_mean_time_proportions(cls):
+        profiles_means = Sentence.objects.values('profile').annotate(
+            mean=models.Avg('time_proportion')).order_by()
+        return [profile_mean['mean'] for profile_mean in profiles_means]
+
     @property
     def time_used(self):
         return self.time_allotted * self.time_proportion
@@ -338,10 +344,6 @@ class Profile(models.Model):
 
     @classmethod
     def mean_diff_performances(cls):
-        return 0
-
-    @classmethod
-    def mean_time_proportions(cls):
         return 0
 
     @classmethod

@@ -110,6 +110,8 @@ class Stats(views.APIView):
     """
 
     COOLDOWN_PERIOD = timedelta(minutes=3)
+    last_update = None
+    last_stats = None
     permission_classes = (
         # Anybody can read
         C(WantsSafe) |
@@ -119,26 +121,32 @@ class Stats(views.APIView):
 
     def __init__(self, *args, **kwargs):
         super(Stats, self).__init__(*args, **kwargs)
-        self.update()
+        if (self.last_stats is None or
+                now() - self.COOLDOWN_PERIOD > self.last_update):
+            self.update()
 
-    def update(self):
-        self.stats = {
-            'updated': now(),
-            'profile_mean_diff_performances': Profile.mean_diff_performances(),
-            'profile_mean_time_proportions': Profile.mean_time_proportions(),
-            'profile_reading_spans': Profile.reading_spans()
+    @classmethod
+    def update(cls):
+        cls.last_update = now()
+        cls.last_stats = {
+            'updated': cls.last_update,
+            'profiles_mean_diff_performances':
+                Profile.mean_diff_performances(),
+            'profiles_mean_time_proportions':
+                Sentence.profiles_mean_time_proportions(),
+            'profiles_reading_spans': Profile.reading_spans()
         }
 
     def get(self, request, format=None):
         """Descriptive statistics about the data, with cooled-down update."""
-        if now() - self.COOLDOWN_PERIOD > self.stats['updated']:
+        if now() - self.COOLDOWN_PERIOD > self.last_update:
             self.update()
-        return Response(self.stats)
+        return Response(self.last_stats)
 
     def post(self, request, format=None):
         """Force update of the statistics, admin-only."""
         self.update()
-        return Response(self.stats)
+        return Response(self.last_stats)
 
 
 class TreeViewSet(viewsets.ReadOnlyModelViewSet):
