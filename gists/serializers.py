@@ -206,6 +206,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
             'introduced_exp_home', 'introduced_exp_play',
             'introduced_play_home', 'introduced_play_play',
+
+            'prolific_id',
         )
         read_only_fields = (
             'created',

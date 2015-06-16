@@ -185,6 +185,8 @@ class Profile(models.Model):
     introduced_play_home = models.BooleanField(default=False)
     introduced_play_play = models.BooleanField(default=False)
 
+    prolific_id = models.CharField(max_length=50, null=True)
+
     @classmethod
     def reading_spans(cls):
         spans = np.array(Profile.objects
