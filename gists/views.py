@@ -23,8 +23,7 @@ from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
                           ReadingSpan, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE,
-                          GENDER_CHOICES, ISCO_MAJOR_CHOICES,
-                          ISCO_SUBMAJOR_CHOICES, ISCO_MINOR_CHOICES)
+                          GENDER_CHOICES, JOB_TYPE_CHOICES,)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, QuestionnaireSerializer,
                                ReadingSpanSerializer,
@@ -98,9 +97,7 @@ class Meta(views.APIView):
             'reading_span_trials_count': config.reading_span_trials_count,
 
             'gender_choices': remap_choices(GENDER_CHOICES),
-            'isco_major_choices': remap_choices(ISCO_MAJOR_CHOICES),
-            'isco_submajor_choices': remap_choices(ISCO_SUBMAJOR_CHOICES),
-            'isco_minor_choices': remap_choices(ISCO_MINOR_CHOICES),
+            'job_type_choices': remap_choices(JOB_TYPE_CHOICES),
         })
 
 
