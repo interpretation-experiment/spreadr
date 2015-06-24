@@ -9,6 +9,11 @@ from spreadr.settings import *
 import os
 SECRET_KEY = os.environ['SECRET_KEY']
 
+# Sentry/raven
+RAVEN_CONFIG = {
+    'dsn': os.environ['RAVEN_DSN']
+}
+
 # No debug
 DEBUG = False
 

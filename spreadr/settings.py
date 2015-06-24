@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'allauth.account',
     'rest_auth.registration',
 
+    'raven.contrib.django.raven_compat',
     'solo',
     'corsheaders',
     'glue',
