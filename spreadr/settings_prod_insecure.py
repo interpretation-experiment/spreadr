@@ -9,11 +9,6 @@ from spreadr.settings import *
 import os
 SECRET_KEY = os.environ['SECRET_KEY']
 
-# Sentry/raven
-RAVEN_CONFIG = {
-    'dsn': os.environ['RAVEN_DSN']
-}
-
 # No debug
 DEBUG = False
 
@@ -21,6 +16,21 @@ DEBUG = False
 ALLOWED_HOSTS = [
     '.gistr.io'
 ]
+
+# Sentry/raven
+RAVEN_CONFIG = {
+    'dsn': os.environ['RAVEN_DSN']
+}
+
+# Database
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'OPTIONS': {
+            'read_default_file': 'my.cnf',
+        },
+    }
+}
 
 # Static files
 STATIC_ROOT = 'static'
