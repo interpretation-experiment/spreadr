@@ -23,6 +23,7 @@ RAVEN_CONFIG = {
 }
 
 # Database
+CONN_MAX_AGE = 300
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
