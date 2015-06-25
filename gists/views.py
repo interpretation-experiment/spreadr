@@ -383,7 +383,8 @@ class EmailAddressViewSet(mixins.CreateModelMixin,
 
         return self.queryset.filter(user=user)
 
-    @detail_route(methods=['post'])
+    @detail_route(methods=['post'],
+                  permission_classes=[C(IsAuthenticated) & C(ObjUserIsSelf)])
     def verify(self, request, pk=None):
         email = get_object_or_404(self.queryset, pk=pk)
         email.send_confirmation(request)
