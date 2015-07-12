@@ -234,8 +234,9 @@ class Questionnaire(models.Model):
                                                        MaxValueValidator(120)])
     gender = models.CharField(max_length=100, choices=GENDER_CHOICES)
 
-    naive = models.BooleanField(default=True)
-    naive_detail = models.CharField(max_length=500, blank=True, default="")
+    informed = models.BooleanField(default=False)
+    informed_how = models.CharField(max_length=500, blank=True, default="")
+    informed_what = models.CharField(max_length=500, blank=True, default="")
 
     job_type = models.CharField(max_length=5, choices=JOB_TYPE_CHOICES)
     job_freetext = models.CharField(max_length=500,

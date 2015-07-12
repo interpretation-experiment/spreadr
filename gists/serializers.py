@@ -229,7 +229,7 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
             'id', 'url', 'created',
             'profile', 'profile_url',
             'age', 'gender',
-            'naive', 'naive_detail',
+            'informed', 'informed_how', 'informed_what',
             'job_type',
             'job_freetext',
         )
