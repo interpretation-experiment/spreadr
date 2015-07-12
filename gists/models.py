@@ -103,7 +103,8 @@ class Sentence(models.Model):
 
     @classmethod
     def mean_read_time_proportion_per_profile(cls):
-        profiles_means = Sentence.objects.values('profile').annotate(
+        profiles_means = Sentence.objects.filter(
+            parent__isnull=False).values('profile').annotate(
             mean=models.Avg('read_time_proportion')).order_by()
 
         means = {}
@@ -114,7 +115,8 @@ class Sentence(models.Model):
 
     @classmethod
     def mean_write_time_proportion_per_profile(cls):
-        profiles_means = Sentence.objects.values('profile').annotate(
+        profiles_means = Sentence.objects.filter(
+            parent__isnull=False).values('profile').annotate(
             mean=models.Avg('write_time_proportion')).order_by()
 
         means = {}
