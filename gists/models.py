@@ -235,8 +235,10 @@ class Questionnaire(models.Model):
     gender = models.CharField(max_length=100, choices=GENDER_CHOICES)
 
     informed = models.BooleanField(default=False)
-    informed_how = models.CharField(max_length=500, blank=True, default="")
-    informed_what = models.CharField(max_length=500, blank=True, default="")
+    informed_how = models.CharField(max_length=500,
+                                    validators=[MinLengthValidator(5)])
+    informed_what = models.CharField(max_length=500,
+                                     validators=[MinLengthValidator(5)])
 
     job_type = models.CharField(max_length=5, choices=JOB_TYPE_CHOICES)
     job_freetext = models.CharField(max_length=500,
