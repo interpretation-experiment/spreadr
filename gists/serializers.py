@@ -52,10 +52,12 @@ class SentenceSerializer(serializers.ModelSerializer):
             'parent', 'parent_url',
             'children', 'children_count',
             'text', 'language', 'bucket',
-            'time_proportion', 'time_used', 'time_allotted',
+            'read_time_proportion', 'read_time_used', 'read_time_allotted',
+            'write_time_proportion', 'write_time_used', 'write_time_allotted',
         )
         read_only_fields = (
-            'time_used',
+            'read_time_used',
+            'write_time_used',
         )
 
 

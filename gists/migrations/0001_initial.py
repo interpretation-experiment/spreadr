@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-from django.conf import settings
 import django.core.validators
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GistsConfiguration',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('base_credit', models.PositiveIntegerField(default=0)),
                 ('target_branch_count', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)], default=6)),
                 ('target_branch_depth', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(2)], default=8)),
@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Profile',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('mothertongue', models.CharField(choices=[('english', 'English'), ('french', 'French'), ('german', 'German'), ('italian', 'Italian'), ('other', 'Other'), ('spanish', 'Spanish')], max_length=100)),
                 ('trained_reformulations', models.BooleanField(default=False)),
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Questionnaire',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('age', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(3), django.core.validators.MaxValueValidator(120)])),
                 ('gender', models.CharField(choices=[('female', 'Female'), ('male', 'Male'), ('other', 'Other')], max_length=100)),
@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ReadingSpan',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('words_count', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(3)])),
                 ('span', models.FloatField(validators=[django.core.validators.MinValueValidator(0)])),
@@ -82,15 +82,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Sentence',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('text', models.CharField(max_length=5000)),
-                ('time_proportion', models.FloatField(validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(1)])),
-                ('time_allotted', models.FloatField(validators=[django.core.validators.MinValueValidator(0)])),
+                ('read_time_proportion', models.FloatField(validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(1)])),
+                ('read_time_allotted', models.FloatField(validators=[django.core.validators.MinValueValidator(0)])),
+                ('write_time_proportion', models.FloatField(validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(1)])),
+                ('write_time_allotted', models.FloatField(validators=[django.core.validators.MinValueValidator(0)])),
                 ('language', models.CharField(choices=[('english', 'English'), ('french', 'French'), ('german', 'German'), ('italian', 'Italian'), ('other', 'Other'), ('spanish', 'Spanish')], max_length=100)),
                 ('bucket', models.CharField(choices=[('experiment', 'Experiment'), ('game', 'Game'), ('training', 'Training')], max_length=100)),
-                ('parent', models.ForeignKey(related_name='children', to='gists.Sentence', null=True)),
-                ('profile', models.ForeignKey(to='gists.Profile', related_name='sentences')),
+                ('parent', models.ForeignKey(related_name='children', null=True, to='gists.Sentence')),
+                ('profile', models.ForeignKey(related_name='sentences', to='gists.Profile')),
             ],
             options={
                 'ordering': ('-created',),
@@ -100,7 +102,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tree',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False, auto_created=True, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('profiles', models.ManyToManyField(related_name='trees', to='gists.Profile', through='gists.Sentence')),
             ],
@@ -111,13 +113,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sentence',
             name='tree',
-            field=models.ForeignKey(to='gists.Tree', related_name='sentences'),
+            field=models.ForeignKey(related_name='sentences', to='gists.Tree'),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='sentence',
             name='tree_as_root',
-            field=models.OneToOneField(null=True, to='gists.Tree', related_name='root'),
+            field=models.OneToOneField(related_name='root', null=True, to='gists.Tree'),
             preserve_default=True,
         ),
     ]

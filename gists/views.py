@@ -126,8 +126,10 @@ class Stats(views.APIView):
         cls.stats = {
             'updated': now(),
             'mean_errs_per_profile': Sentence.mean_errs_per_profile(),
-            'mean_time_proportion_per_profile':
-                Sentence.mean_time_proportion_per_profile(),
+            'mean_read_time_proportion_per_profile':
+                Sentence.mean_read_time_proportion_per_profile(),
+            'mean_write_time_proportion_per_profile':
+                Sentence.mean_write_time_proportion_per_profile(),
             'profiles_reading_spans': Profile.reading_spans()
         }
 

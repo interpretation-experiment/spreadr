@@ -87,9 +87,12 @@ class Sentence(models.Model):
     parent = models.ForeignKey('Sentence', related_name='children', null=True)
     tree_as_root = models.OneToOneField('Tree', related_name='root', null=True)
     text = models.CharField(max_length=5000)
-    time_proportion = models.FloatField(validators=[MinValueValidator(0),
-                                                    MaxValueValidator(1)])
-    time_allotted = models.FloatField(validators=[MinValueValidator(0)])
+    read_time_proportion = models.FloatField(validators=[MinValueValidator(0),
+                                                         MaxValueValidator(1)])
+    read_time_allotted = models.FloatField(validators=[MinValueValidator(0)])
+    write_time_proportion = models.FloatField(validators=[MinValueValidator(0),
+                                                          MaxValueValidator(1)])
+    write_time_allotted = models.FloatField(validators=[MinValueValidator(0)])
     language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
     bucket = models.CharField(choices=BUCKET_CHOICES, max_length=100)
 
@@ -99,9 +102,20 @@ class Sentence(models.Model):
         ordering = ('-created',)
 
     @classmethod
-    def mean_time_proportion_per_profile(cls):
+    def mean_read_time_proportion_per_profile(cls):
         profiles_means = Sentence.objects.values('profile').annotate(
-            mean=models.Avg('time_proportion')).order_by()
+            mean=models.Avg('read_time_proportion')).order_by()
+
+        means = {}
+        for profile_mean in profiles_means:
+            means[profile_mean['profile']] = profile_mean['mean']
+
+        return means
+
+    @classmethod
+    def mean_write_time_proportion_per_profile(cls):
+        profiles_means = Sentence.objects.values('profile').annotate(
+            mean=models.Avg('write_time_proportion')).order_by()
 
         means = {}
         for profile_mean in profiles_means:
@@ -128,8 +142,12 @@ class Sentence(models.Model):
         return errs
 
     @property
-    def time_used(self):
-        return self.time_allotted * self.time_proportion
+    def read_time_used(self):
+        return self.read_time_allotted * self.read_time_proportion
+
+    @property
+    def write_time_used(self):
+        return self.write_time_allotted * self.write_time_proportion
 
     def __str__(self):
         max_length = 20
