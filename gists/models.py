@@ -62,13 +62,6 @@ class GistsConfiguration(SingletonModel):
         default=settings.DEFAULT_TRAINING_WORK,
         validators=[MinValueValidator(1)])
 
-    word_span_words_count = models.PositiveSmallIntegerField(
-        default=settings.DEFAULT_WORD_SPAN_WORDS_COUNT,
-        validators=[MinValueValidator(3)])
-    word_span_trials_count = models.PositiveSmallIntegerField(
-        default=settings.DEFAULT_WORD_SPAN_TRIALS_COUNT,
-        validators=[MinValueValidator(3)])
-
     @property
     def tree_cost(self):
         return self.target_branch_count * self.target_branch_depth
@@ -90,8 +83,8 @@ class Sentence(models.Model):
     read_time_proportion = models.FloatField(validators=[MinValueValidator(0),
                                                          MaxValueValidator(1)])
     read_time_allotted = models.FloatField(validators=[MinValueValidator(0)])
-    write_time_proportion = models.FloatField(validators=[MinValueValidator(0),
-                                                          MaxValueValidator(1)])
+    write_time_proportion = models.FloatField(
+        validators=[MinValueValidator(0), MaxValueValidator(1)])
     write_time_allotted = models.FloatField(validators=[MinValueValidator(0)])
     language = models.CharField(choices=LANGUAGE_CHOICES, max_length=100)
     bucket = models.CharField(choices=BUCKET_CHOICES, max_length=100)
@@ -268,6 +261,5 @@ class Questionnaire(models.Model):
 class WordSpan(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     profile = models.OneToOneField('Profile', related_name="word_span")
-    words_count = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(3)])
-    span = models.FloatField(validators=[MinValueValidator(0)])
+    span = models.PositiveSmallIntegerField()
+    score = models.PositiveSmallIntegerField()

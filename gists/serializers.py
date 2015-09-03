@@ -249,21 +249,12 @@ class WordSpanSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    def validate(self, data):
-        span = data['span']
-        words_count = data['words_count']
-        if span > words_count:
-            raise serializers.ValidationError((
-                "Word-span ({}) can't be more than the number of "
-                "words it was tested on ({})").format(span, words_count))
-        return data
-
     class Meta:
         model = WordSpan
         fields = (
             'id', 'url', 'created',
             'profile', 'profile_url',
-            'words_count', 'span',
+            'span', 'score',
         )
         read_only_fields = (
             'created',

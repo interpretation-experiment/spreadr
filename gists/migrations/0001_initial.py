@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-from django.conf import settings
 import django.core.validators
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
@@ -22,8 +22,6 @@ class Migration(migrations.Migration):
                 ('target_branch_depth', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(2)], default=8)),
                 ('experiment_work', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)], default=50)),
                 ('training_work', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)], default=5)),
-                ('word_span_words_count', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(3)], default=10)),
-                ('word_span_trials_count', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(3)], default=3)),
             ],
             options={
                 'verbose_name': 'Gists Configuration',
@@ -41,7 +39,7 @@ class Migration(migrations.Migration):
                 ('introduced_exp_play', models.BooleanField(default=False)),
                 ('introduced_play_home', models.BooleanField(default=False)),
                 ('introduced_play_play', models.BooleanField(default=False)),
-                ('prolific_id', models.CharField(null=True, max_length=50)),
+                ('prolific_id', models.CharField(max_length=50, null=True)),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -78,7 +76,7 @@ class Migration(migrations.Migration):
                 ('write_time_allotted', models.FloatField(validators=[django.core.validators.MinValueValidator(0)])),
                 ('language', models.CharField(choices=[('english', 'English'), ('french', 'French'), ('german', 'German'), ('italian', 'Italian'), ('other', 'Other'), ('spanish', 'Spanish')], max_length=100)),
                 ('bucket', models.CharField(choices=[('experiment', 'Experiment'), ('game', 'Game'), ('training', 'Training')], max_length=100)),
-                ('parent', models.ForeignKey(related_name='children', null=True, to='gists.Sentence')),
+                ('parent', models.ForeignKey(to='gists.Sentence', related_name='children', null=True)),
                 ('profile', models.ForeignKey(related_name='sentences', to='gists.Profile')),
             ],
             options={
@@ -91,7 +89,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('profiles', models.ManyToManyField(related_name='trees', to='gists.Profile', through='gists.Sentence')),
+                ('profiles', models.ManyToManyField(related_name='trees', through='gists.Sentence', to='gists.Profile')),
             ],
             options={
             },
@@ -102,9 +100,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('words_count', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(3)])),
-                ('span', models.FloatField(validators=[django.core.validators.MinValueValidator(0)])),
-                ('profile', models.OneToOneField(related_name='word_span', to='gists.Profile')),
+                ('span', models.PositiveSmallIntegerField()),
+                ('score', models.PositiveSmallIntegerField()),
+                ('profile', models.OneToOneField(to='gists.Profile', related_name='word_span')),
             ],
             options={
             },
@@ -119,7 +117,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sentence',
             name='tree_as_root',
-            field=models.OneToOneField(related_name='root', null=True, to='gists.Tree'),
+            field=models.OneToOneField(to='gists.Tree', related_name='root', null=True),
             preserve_default=True,
         ),
     ]

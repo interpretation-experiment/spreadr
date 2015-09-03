@@ -93,8 +93,6 @@ class Meta(views.APIView):
             'experiment_work': config.experiment_work,
             'training_work': config.training_work,
             'tree_cost': config.tree_cost,
-            'word_span_words_count': config.word_span_words_count,
-            'word_span_trials_count': config.word_span_trials_count,
 
             'gender_choices': remap_choices(GENDER_CHOICES),
             'job_type_choices': remap_choices(JOB_TYPE_CHOICES),
@@ -261,9 +259,9 @@ class QuestionnaireViewSet(mixins.CreateModelMixin,
 
 
 class WordSpanViewSet(mixins.CreateModelMixin,
-                         mixins.RetrieveModelMixin,
-                         mixins.ListModelMixin,
-                         viewsets.GenericViewSet):
+                      mixins.RetrieveModelMixin,
+                      mixins.ListModelMixin,
+                      viewsets.GenericViewSet):
     """Word-span list and detail, authenticated read,
     authenticated creation."""
     queryset = WordSpan.objects.all()
