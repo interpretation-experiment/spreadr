@@ -4,7 +4,7 @@ from rest_framework import serializers
 from allauth.account.models import EmailAddress
 
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
-                          ReadingSpan,
+                          WordSpan,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE,
                           DEFAULT_LANGUAGE, BUCKET_CHOICES)
 
@@ -127,22 +127,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True
     )
     questionnaire_done = serializers.SerializerMethodField()
-    reading_span = serializers.PrimaryKeyRelatedField(read_only=True)
-    reading_span_url = serializers.HyperlinkedRelatedField(
-        source='reading_span',
-        view_name='reading-span-detail',
+    word_span = serializers.PrimaryKeyRelatedField(read_only=True)
+    word_span_url = serializers.HyperlinkedRelatedField(
+        source='word_span',
+        view_name='word-span-detail',
         read_only=True
     )
-    reading_span_done = serializers.SerializerMethodField()
+    word_span_done = serializers.SerializerMethodField()
     available_trees_counts = serializers.SerializerMethodField()
 
     def get_questionnaire_done(self, obj):
         return (hasattr(obj, 'questionnaire') and
                 obj.questionnaire is not None)
 
-    def get_reading_span_done(self, obj):
-        return (hasattr(obj, 'reading_span') and
-                obj.reading_span is not None)
+    def get_word_span_done(self, obj):
+        return (hasattr(obj, 'word_span') and
+                obj.word_span is not None)
 
     def get_available_trees_counts(self, obj):
         """Other- and mothertongue-aware count of available trees, per bucket.
@@ -203,8 +203,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'questionnaire', 'questionnaire_url',
             'questionnaire_done',
 
-            'reading_span', 'reading_span_url',
-            'reading_span_done',
+            'word_span', 'word_span_url',
+            'word_span_done',
 
             'introduced_exp_home', 'introduced_exp_play',
             'introduced_play_home', 'introduced_play_play',
@@ -241,8 +241,8 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
         )
 
 
-class ReadingSpanSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='reading-span-detail')
+class WordSpanSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='word-span-detail')
     profile_url = serializers.HyperlinkedRelatedField(
         source='profile',
         view_name='profile-detail',
@@ -254,12 +254,12 @@ class ReadingSpanSerializer(serializers.ModelSerializer):
         words_count = data['words_count']
         if span > words_count:
             raise serializers.ValidationError((
-                "Reading-span ({}) can't be more than the number of "
+                "Word-span ({}) can't be more than the number of "
                 "words it was tested on ({})").format(span, words_count))
         return data
 
     class Meta:
-        model = ReadingSpan
+        model = WordSpan
         fields = (
             'id', 'url', 'created',
             'profile', 'profile_url',

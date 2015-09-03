@@ -62,11 +62,11 @@ class GistsConfiguration(SingletonModel):
         default=settings.DEFAULT_TRAINING_WORK,
         validators=[MinValueValidator(1)])
 
-    reading_span_words_count = models.PositiveSmallIntegerField(
-        default=settings.DEFAULT_READING_SPAN_WORDS_COUNT,
+    word_span_words_count = models.PositiveSmallIntegerField(
+        default=settings.DEFAULT_WORD_SPAN_WORDS_COUNT,
         validators=[MinValueValidator(3)])
-    reading_span_trials_count = models.PositiveSmallIntegerField(
-        default=settings.DEFAULT_READING_SPAN_TRIALS_COUNT,
+    word_span_trials_count = models.PositiveSmallIntegerField(
+        default=settings.DEFAULT_WORD_SPAN_TRIALS_COUNT,
         validators=[MinValueValidator(3)])
 
     @property
@@ -208,10 +208,10 @@ class Profile(models.Model):
     prolific_id = models.CharField(max_length=50, null=True)
 
     @classmethod
-    def reading_spans(cls):
+    def word_spans(cls):
         spans = np.array(Profile.objects
-                         .filter(reading_span__isnull=False)
-                         .values_list('reading_span__span', flat=True))
+                         .filter(word_span__isnull=False)
+                         .values_list('word_span__span', flat=True))
         shuffle(spans)
         return spans
 
@@ -265,9 +265,9 @@ class Questionnaire(models.Model):
                                     validators=[MinLengthValidator(5)])
 
 
-class ReadingSpan(models.Model):
+class WordSpan(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    profile = models.OneToOneField('Profile', related_name="reading_span")
+    profile = models.OneToOneField('Profile', related_name="word_span")
     words_count = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(3)])
     span = models.FloatField(validators=[MinValueValidator(0)])

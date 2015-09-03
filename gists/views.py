@@ -21,16 +21,16 @@ from rest_condition import C
 
 from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
-                          ReadingSpan, GistsConfiguration,
+                          WordSpan, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE,
                           GENDER_CHOICES, JOB_TYPE_CHOICES,)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, QuestionnaireSerializer,
-                               ReadingSpanSerializer,
+                               WordSpanSerializer,
                                UserSerializer, PrivateUserSerializer,
                                EmailAddressSerializer)
 from gists.permissions import (IsAdmin, HasProfile, HasQuestionnaire,
-                               HasReadingSpan, ObjIsSelf, ObjUserIsSelf,
+                               HasWordSpan, ObjIsSelf, ObjUserIsSelf,
                                WantsSafe, WantsPost,
                                WantsCreate, WantsUpdate, WantsList,
                                WantsRetrieve, WantsDestroy,)
@@ -65,8 +65,8 @@ class APIRoot(views.APIView):
                                 format=format),
             'questionnaires': reverse('questionnaire-list', request=request,
                                       format=format),
-            'reading-spans': reverse('reading-span-list', request=request,
-                                     format=format),
+            'word-spans': reverse('word-span-list', request=request,
+                                  format=format),
             'users': reverse('user-list', request=request, format=format),
             'emails': reverse('email-list', request=request, format=format),
             'meta': reverse('meta', request=request, format=format),
@@ -93,8 +93,8 @@ class Meta(views.APIView):
             'experiment_work': config.experiment_work,
             'training_work': config.training_work,
             'tree_cost': config.tree_cost,
-            'reading_span_words_count': config.reading_span_words_count,
-            'reading_span_trials_count': config.reading_span_trials_count,
+            'word_span_words_count': config.word_span_words_count,
+            'word_span_trials_count': config.word_span_trials_count,
 
             'gender_choices': remap_choices(GENDER_CHOICES),
             'job_type_choices': remap_choices(JOB_TYPE_CHOICES),
@@ -130,7 +130,7 @@ class Stats(views.APIView):
                 Sentence.mean_read_time_proportion_per_profile(),
             'mean_write_time_proportion_per_profile':
                 Sentence.mean_write_time_proportion_per_profile(),
-            'profiles_reading_spans': Profile.reading_spans()
+            'profiles_word_spans': Profile.word_spans()
         }
 
     def get(self, request, format=None):
@@ -260,22 +260,22 @@ class QuestionnaireViewSet(mixins.CreateModelMixin,
         serializer.save(profile=self.request.user.profile)
 
 
-class ReadingSpanViewSet(mixins.CreateModelMixin,
+class WordSpanViewSet(mixins.CreateModelMixin,
                          mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
-    """Reading-span list and detail, authenticated read,
+    """Word-span list and detail, authenticated read,
     authenticated creation."""
-    queryset = ReadingSpan.objects.all()
-    serializer_class = ReadingSpanSerializer
+    queryset = WordSpan.objects.all()
+    serializer_class = WordSpanSerializer
     permission_classes = (
         # All operations need authentication
         (C(IsAuthenticated) &
          # Reading is ok for all, since the queryset gets reduced to
-         # the user's reading-span (or all if the user is admin)
+         # the user's word-span (or all if the user is admin)
          (C(WantsRetrieve) | C(WantsList) |
           # Creation needs a profile without a questionnaire
-          (C(WantsCreate) & C(HasProfile) & ~C(HasReadingSpan)))),
+          (C(WantsCreate) & C(HasProfile) & ~C(HasWordSpan)))),
     )
     ordering = ('-created',)
 
