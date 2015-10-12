@@ -13,11 +13,7 @@ from .utils import memoize, levenshtein
 DEFAULT_LANGUAGE = 'english'
 OTHER_LANGUAGE = 'other'
 LANGUAGE_CHOICES = sorted(
-    [('french', 'French'),
-     ('english', 'English'),
-     ('spanish', 'Spanish'),
-     ('italian', 'Italian'),
-     ('german', 'German'),
+    [('english', 'English'),
      ('other', 'Other')],
     key=lambda l: l[1])
 BUCKET_CHOICES = sorted(
