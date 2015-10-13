@@ -169,9 +169,9 @@ class Tree(models.Model):
         if sentences_count <= 1:
             return sentences_count
 
+        heads = self.root.children.values_list('pk', flat=True)
         edges = [(e['source'], e['target']) for e in self.network_edges]
         graph = nx.DiGraph(edges)
-        heads = self.root.children.values_list('pk', flat=True)
         all_depths = [nx.single_source_shortest_path_length(graph, h)
                       for h in heads]
         branch_depths = [1 + max(depths.values()) for depths in all_depths]
