@@ -1,5 +1,5 @@
 """
-Insecure production Django settings for spreadr project.
+Secure production Django settings for spreadr project.
 """
 
 # Import default settings
