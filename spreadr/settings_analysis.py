@@ -1,5 +1,5 @@
 """
-Django settings for spreadr project for home exploration of the data.
+Django settings for spreadr project for analysis of the data.
 """
 
 # Import default settings
