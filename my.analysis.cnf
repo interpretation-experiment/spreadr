@@ -1,0 +1,5 @@
+[client]
+database = spreadr_exp_1
+user = root
+password = 
+default-character-set = utf8
