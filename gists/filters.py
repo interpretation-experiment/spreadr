@@ -8,26 +8,19 @@ from gists.models import (Profile, Tree, LANGUAGE_CHOICES, OTHER_LANGUAGE,
 
 
 class TreeFilter(django_filters.FilterSet):
-    profile = django_filters.MethodFilter(action='filter_profile')
+    profile = django_filters.MethodFilter()
     root_language = django_filters.ChoiceFilter(name='root__language',
                                                 choices=LANGUAGE_CHOICES)
     root_bucket = django_filters.ChoiceFilter(name='root__bucket',
                                               choices=BUCKET_CHOICES)
-    untouched_by_profile = django_filters.MethodFilter(
-        action='filter_untouched_by_profile')
-    with_other_mothertongue = django_filters.MethodFilter(
-        action='filter_with_other_mothertongue')
-    without_other_mothertongue = django_filters.MethodFilter(
-        action='filter_without_other_mothertongue')
-    branches_count_gte = django_filters.MethodFilter(
-        action='filter_branches_count_gte')
-    branches_count_lte = django_filters.MethodFilter(
-        action='filter_branches_count_lte')
-    shortest_branch_depth_gte = django_filters.MethodFilter(
-        action='filter_shortest_branch_depth_gte')
-    shortest_branch_depth_lte = django_filters.MethodFilter(
-        action='filter_shortest_branch_depth_lte')
-    sample = django_filters.MethodFilter(action='filter_sample')
+    untouched_by_profile = django_filters.MethodFilter()
+    with_other_mothertongue = django_filters.MethodFilter()
+    without_other_mothertongue = django_filters.MethodFilter()
+    branches_count_gte = django_filters.MethodFilter()
+    branches_count_lte = django_filters.MethodFilter()
+    shortest_branch_depth_gte = django_filters.MethodFilter()
+    shortest_branch_depth_lte = django_filters.MethodFilter()
+    sample = django_filters.MethodFilter()
 
     def filter_profile(self, queryset, value):
         try:
