@@ -17,8 +17,7 @@ CONN_MAX_AGE = 300
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': os.environ['MY_CNF']
-        },
+        'USER': 'spreadr_analysis',
+        'NAME': os.environ.get('DB_NAME')
     }
 }
