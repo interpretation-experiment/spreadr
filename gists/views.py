@@ -295,7 +295,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   viewsets.GenericViewSet):
     """
-    User list and detail, unauthenticated read, authenticated and modification
+    User list and detail, unauthenticated read, and authenticated modification
     (everything if staff, only username if self).
     """
     queryset = User.objects.all()
