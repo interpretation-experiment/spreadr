@@ -309,7 +309,8 @@ class UserViewSet(mixins.RetrieveModelMixin,
 
     @list_route(permission_classes=[IsAuthenticated])
     def me(self, request, format=None):
-        serializer = UserSerializer(request.user, context={'request': request})
+        serializer = PrivateUserSerializer(request.user,
+                                           context={'request': request})
         return Response(serializer.data)
 
     def perform_update(self, serializer):
