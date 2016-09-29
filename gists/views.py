@@ -342,7 +342,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
             return PrivateUserSerializer
 
         # Self in detail view can see privately
-        if self.action == 'retrieve':
+        if (self.action == 'retrieve') or (self.action == 'update'):
             obj = self.get_object()
             if user == obj:
                 return PrivateUserSerializer
