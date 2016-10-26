@@ -113,5 +113,5 @@ class TreeFilter(django_filters.FilterSet):
             'without_other_mothertongue',
             'branches_count_gte', 'branches_count_lte',
             'shortest_branch_depth_gte', 'shortest_branch_depth_lte',
-            'sample',  # Settign sample here assures it's always applied last
+            'sample',  # Setting sample here assures it's always applied last
         )
