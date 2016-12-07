@@ -41,15 +41,28 @@ JOB_TYPE_CHOICES = [
 
 
 class GistsConfiguration(SingletonModel):
-    base_credit = models.PositiveIntegerField(
-        default=settings.DEFAULT_BASE_CREDIT)
-
-    target_branch_count = models.PositiveIntegerField(
-        default=settings.DEFAULT_TARGET_BRANCH_COUNT,
-        validators=[MinValueValidator(1)])
     target_branch_depth = models.PositiveIntegerField(
         default=settings.DEFAULT_TARGET_BRANCH_DEPTH,
         validators=[MinValueValidator(2)])
+    target_branch_count = models.PositiveIntegerField(
+        default=settings.DEFAULT_TARGET_BRANCH_COUNT,
+        validators=[MinValueValidator(1)])
+    branch_probability = models.FloatField(
+        default=settings.DEFAULT_BRANCH_PROBABILITY,
+        validators=[MinValueValidator(0.1)])
+
+    read_factor = models.PositiveIntegerField(
+        default=settings.DEFAULT_READ_FACTOR,
+        validators=[MinValueValidator(1)])
+    write_factor = models.PositiveIntegerField(
+        default=settings.DEFAULT_WRITE_FACTOR,
+        validators=[MinValueValidator(1)])
+    min_tokens = models.PositiveIntegerField(
+        default=settings.DEFAULT_MIN_TOKENS,
+        validators=[MinValueValidator(1)])
+    pause_period = models.PositiveIntegerField(
+        default=settings.DEFAULT_PAUSE_PERIOD,
+        validators=[MinValueValidator(1)])
 
     experiment_work = models.PositiveIntegerField(
         default=settings.DEFAULT_EXPERIMENT_WORK,
@@ -57,6 +70,8 @@ class GistsConfiguration(SingletonModel):
     training_work = models.PositiveIntegerField(
         default=settings.DEFAULT_TRAINING_WORK,
         validators=[MinValueValidator(1)])
+    base_credit = models.PositiveIntegerField(
+        default=settings.DEFAULT_BASE_CREDIT)
 
     @property
     def tree_cost(self):

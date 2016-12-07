@@ -27,7 +27,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-VERSION = '0.10.3'
+VERSION = '0.11.0'
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -102,12 +102,8 @@ REST_FRAMEWORK = {
 }
 
 CORS_ORIGIN_WHITELIST = (
-    'gistr.io',
-    'demo.gistr.io',
-    # Firefox OS app
-    'fd2ab894-4080-4c7c-ad5c-585e80504743',
-    # Android APK of Firefox OS app
-    '{ce008662-7e4a-4293-9e50-3a535e925553}',
+    'localhost:3000',
+    'localhost:4200',
 )
 
 REST_AUTH_SERIALIZERS = {
@@ -121,11 +117,18 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Gists configuration
 
-DEFAULT_BASE_CREDIT = 0
-DEFAULT_TARGET_BRANCH_COUNT = 6
 DEFAULT_TARGET_BRANCH_DEPTH = 8
+DEFAULT_TARGET_BRANCH_COUNT = 6
+DEFAULT_BRANCH_PROBABILITY = 0.2
+
+DEFAULT_READ_FACTOR = 1
+DEFAULT_WRITE_FACTOR = 5
+DEFAULT_MIN_TOKENS = 10
+DEFAULT_PAUSE_PERIOD = 10
+
 DEFAULT_EXPERIMENT_WORK = 50
 DEFAULT_TRAINING_WORK = 5
+DEFAULT_BASE_CREDIT = 0
 
 
 # Caching

@@ -81,21 +81,34 @@ class Meta(views.APIView):
     def get(self, request, format=None):
         config = GistsConfiguration.get_solo()
         return Response({
-            'version': settings.VERSION,
-
-            'supported_languages': remap_choices(LANGUAGE_CHOICES),
-            'other_language': OTHER_LANGUAGE,
-            'default_language': DEFAULT_LANGUAGE,
-
-            'base_credit': config.base_credit,
-            'target_branch_count': config.target_branch_count,
+            # Tree shaping
             'target_branch_depth': config.target_branch_depth,
+            'target_branch_count': config.target_branch_count,
+            'branch_probability': config.branch_probability,
+
+            # Read-write parameters
+            'read_factor': config.read_factor,
+            'write_factor': config.write_factor,
+            'min_tokens': config.min_tokens,
+            'pause_period': config.pause_period,
+
+            # Form parameters
+            'gender_choices': remap_choices(GENDER_CHOICES),
+            'job_type_choices': remap_choices(JOB_TYPE_CHOICES),
+
+            # Experiment costs
             'experiment_work': config.experiment_work,
             'training_work': config.training_work,
             'tree_cost': config.tree_cost,
+            'base_credit': config.base_credit,
 
-            'gender_choices': remap_choices(GENDER_CHOICES),
-            'job_type_choices': remap_choices(JOB_TYPE_CHOICES),
+            # Languages
+            'default_language': DEFAULT_LANGUAGE,
+            'supported_languages': remap_choices(LANGUAGE_CHOICES),
+            'other_language': OTHER_LANGUAGE,
+
+            # Server version
+            'version': settings.VERSION,
         })
 
 
