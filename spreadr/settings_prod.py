@@ -19,6 +19,9 @@ ALLOWED_HOSTS = [
     '.gistr.io'
 ]
 
+# CORS whitelist
+CORS_ORIGIN_WHITELIST = ()
+
 # Sentry/raven
 RAVEN_CONFIG = {
     'dsn': os.environ['RAVEN_DSN']
