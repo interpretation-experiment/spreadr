@@ -21,13 +21,13 @@ from rest_condition import C
 
 from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
-                          WordSpan, GistsConfiguration,
+                          WordSpan, Comment, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE,
                           GENDER_CHOICES, EDUCATION_LEVEL_CHOICES,
                           JOB_TYPE_CHOICES,)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, QuestionnaireSerializer,
-                               WordSpanSerializer,
+                               WordSpanSerializer, CommentSerializer,
                                UserSerializer, PrivateUserSerializer,
                                EmailAddressSerializer)
 from gists.permissions import (IsAdmin, HasProfile, HasQuestionnaire,
@@ -68,6 +68,8 @@ class APIRoot(views.APIView):
                                       format=format),
             'word-spans': reverse('word-span-list', request=request,
                                   format=format),
+            'comments': reverse('comment-list', request=request,
+                                format=format),
             'users': reverse('user-list', request=request, format=format),
             'emails': reverse('email-list', request=request, format=format),
             'meta': reverse('meta', request=request, format=format),
@@ -287,8 +289,39 @@ class WordSpanViewSet(mixins.CreateModelMixin,
          # Reading is ok for all, since the queryset gets reduced to
          # the user's word-span (or all if the user is admin)
          (C(WantsRetrieve) | C(WantsList) |
-          # Creation needs a profile without a questionnaire
+          # Creation needs a profile without a word-span
           (C(WantsCreate) & C(HasProfile) & ~C(HasWordSpan)))),
+    )
+    ordering = ('-created',)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return self.queryset
+        elif is_user_authenticated_with_profile(user):
+            return self.queryset.filter(profile=user.profile)
+
+        return self.queryset.none()
+
+    def perform_create(self, serializer):
+        serializer.save(profile=self.request.user.profile)
+
+
+class CommentViewSet(mixins.CreateModelMixin,
+                     mixins.RetrieveModelMixin,
+                     mixins.ListModelMixin,
+                     viewsets.GenericViewSet):
+    """Comments list and detail, authenticated read, authenticated creation."""
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = (
+        # All operations need authentication
+        (C(IsAuthenticated) &
+         # Reading is ok for all, since the queryset gets reduced to
+         # the user's comments (or all if the user is admin)
+         (C(WantsRetrieve) | C(WantsList) |
+          # Creation needs a profile
+          (C(WantsCreate) & C(HasProfile)))),
     )
     ordering = ('-created',)
 

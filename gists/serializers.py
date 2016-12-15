@@ -4,7 +4,7 @@ from rest_framework import serializers
 from allauth.account.models import EmailAddress
 
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
-                          WordSpan,
+                          WordSpan, Comment,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE,
                           DEFAULT_LANGUAGE, BUCKET_CHOICES)
 
@@ -134,6 +134,13 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True
     )
     word_span_done = serializers.SerializerMethodField()
+    comments = serializers.PrimaryKeyRelatedField(
+        many=True,
+        read_only=True
+    )
+    comments_count = serializers.ReadOnlyField(
+        source='comments.count'
+    )
     available_trees_counts = serializers.SerializerMethodField()
 
     def get_questionnaire_done(self, obj):
@@ -206,6 +213,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'word_span', 'word_span_url',
             'word_span_done',
 
+            'comments', 'comments_count',
+
             'introduced_exp_home', 'introduced_exp_play',
             'introduced_play_home', 'introduced_play_play',
 
@@ -255,6 +264,26 @@ class WordSpanSerializer(serializers.ModelSerializer):
             'id', 'url', 'created',
             'profile', 'profile_url',
             'span', 'score',
+        )
+        read_only_fields = (
+            'created',
+            'profile',
+        )
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    profile_url = serializers.HyperlinkedRelatedField(
+        source='profile',
+        view_name='profile-detail',
+        read_only=True
+    )
+
+    class Meta:
+        model = Comment
+        fields = (
+            'id', 'url', 'created',
+            'profile', 'profile_url',
+            'email', 'text',
         )
         read_only_fields = (
             'created',

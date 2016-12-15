@@ -14,6 +14,7 @@ router.register(r'profiles', views.ProfileViewSet)
 router.register(r'questionnaires', views.QuestionnaireViewSet)
 router.register(r'word-spans', views.WordSpanViewSet,
                 base_name='word-span')
+router.register(r'comments', views.CommentViewSet)
 router.register(r'emails', views.EmailAddressViewSet, base_name='email')
 
 

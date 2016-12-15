@@ -25,7 +25,8 @@ GENDER_CHOICES = [('female', 'Female'),
                   ('male', 'Male'),
                   ('other', 'Other')]
 
-# Gross levels of https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education#ISCED_2011_levels.2C_categories.2C_and_sub-categories
+# Gross levels of
+# https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education#ISCED_2011_levels.2C_categories.2C_and_sub-categories
 EDUCATION_LEVEL_CHOICES = [
     ('1', 'No schooling'),
     ('2', 'Incomplete primary'),
@@ -40,7 +41,8 @@ EDUCATION_LEVEL_CHOICES = [
     ('-', 'Other'),
 ]
 
-# Gross levels of https://en.wikipedia.org/wiki/International_Standard_Classification_of_Occupations#The_ISCO-08_structure
+# Gross levels of
+# https://en.wikipedia.org/wiki/International_Standard_Classification_of_Occupations#The_ISCO-08_structure
 JOB_TYPE_CHOICES = [
     ('1', 'Student'),
     ('2', 'Manager'),
@@ -296,3 +298,12 @@ class WordSpan(models.Model):
     profile = models.OneToOneField('Profile', related_name="word_span")
     span = models.PositiveSmallIntegerField()
     score = models.PositiveSmallIntegerField()
+
+
+class Comment(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    profile = models.ForeignKey('Profile', related_name='comments')
+
+    email = models.EmailField()
+    text = models.CharField(max_length=5000,
+                            validators=[MinLengthValidator(5)])
