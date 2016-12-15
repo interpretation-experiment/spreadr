@@ -38,6 +38,19 @@ JOB_TYPE_CHOICES = [
     ('11', 'Army'),
     ('-', 'Other'),
 ]
+EDUCATION_LEVEL_CHOICES = [
+    ('1', 'No schooling'),
+    ('2', 'Incomplete primary'),
+    ('3', 'Primary'),
+    ('4', 'Lower secondary'),
+    ('5', 'Upper secondary'),
+    ('6', 'Post-secondary non-tertiary'),
+    ('7', 'Short-cycle tertiary'),
+    ('8', "Bachelor's or equivalent"),
+    ('9', "Master's or equivalent"),
+    ('10', "Doctoral or equivalent"),
+    ('-', 'Other'),
+]
 
 
 class GistsConfiguration(SingletonModel):
@@ -263,6 +276,11 @@ class Questionnaire(models.Model):
                                     validators=[MinLengthValidator(5)])
     informed_what = models.CharField(max_length=500,
                                      validators=[MinLengthValidator(5)])
+
+    education_level = models.CharField(max_length=5,
+                                       choices=EDUCATION_LEVEL_CHOICES)
+    education_freetext = models.CharField(max_length=500,
+                                          validators=[MinLengthValidator(5)])
 
     job_type = models.CharField(max_length=5, choices=JOB_TYPE_CHOICES)
     job_freetext = models.CharField(max_length=500,

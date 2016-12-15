@@ -232,8 +232,8 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
             'profile', 'profile_url',
             'age', 'gender',
             'informed', 'informed_how', 'informed_what',
-            'job_type',
-            'job_freetext',
+            'education_level', 'education_freetext',
+            'job_type', 'job_freetext',
         )
         read_only_fields = (
             'created',

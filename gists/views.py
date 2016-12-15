@@ -23,7 +23,8 @@ from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
                           WordSpan, GistsConfiguration,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE, DEFAULT_LANGUAGE,
-                          GENDER_CHOICES, JOB_TYPE_CHOICES,)
+                          GENDER_CHOICES, EDUCATION_LEVEL_CHOICES,
+                          JOB_TYPE_CHOICES,)
 from gists.serializers import (SentenceSerializer, TreeSerializer,
                                ProfileSerializer, QuestionnaireSerializer,
                                WordSpanSerializer,
@@ -94,6 +95,7 @@ class Meta(views.APIView):
 
             # Form parameters
             'gender_choices': remap_choices(GENDER_CHOICES),
+            'education_level_choices': remap_choices(EDUCATION_LEVEL_CHOICES),
             'job_type_choices': remap_choices(JOB_TYPE_CHOICES),
 
             # Experiment costs
