@@ -24,6 +24,23 @@ BUCKET_CHOICES = sorted(
 GENDER_CHOICES = [('female', 'Female'),
                   ('male', 'Male'),
                   ('other', 'Other')]
+
+# Gross levels of https://en.wikipedia.org/wiki/International_Standard_Classification_of_Education#ISCED_2011_levels.2C_categories.2C_and_sub-categories
+EDUCATION_LEVEL_CHOICES = [
+    ('1', 'No schooling'),
+    ('2', 'Incomplete primary'),
+    ('3', 'Primary'),
+    ('4', 'Lower secondary'),
+    ('5', 'Upper secondary'),
+    ('6', 'Post-secondary non-tertiary'),
+    ('7', 'Short-cycle tertiary'),
+    ('8', "Bachelor's or equivalent"),
+    ('9', "Master's or equivalent"),
+    ('10', "Doctoral or equivalent"),
+    ('-', 'Other'),
+]
+
+# Gross levels of https://en.wikipedia.org/wiki/International_Standard_Classification_of_Occupations#The_ISCO-08_structure
 JOB_TYPE_CHOICES = [
     ('1', 'Student'),
     ('2', 'Manager'),
@@ -36,19 +53,6 @@ JOB_TYPE_CHOICES = [
     ('9', 'Plant and machine operator, or assembler'),
     ('10', 'Elementary occupations'),
     ('11', 'Army'),
-    ('-', 'Other'),
-]
-EDUCATION_LEVEL_CHOICES = [
-    ('1', 'No schooling'),
-    ('2', 'Incomplete primary'),
-    ('3', 'Primary'),
-    ('4', 'Lower secondary'),
-    ('5', 'Upper secondary'),
-    ('6', 'Post-secondary non-tertiary'),
-    ('7', 'Short-cycle tertiary'),
-    ('8', "Bachelor's or equivalent"),
-    ('9', "Master's or equivalent"),
-    ('10', "Doctoral or equivalent"),
     ('-', 'Other'),
 ]
 
