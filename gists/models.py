@@ -305,5 +305,6 @@ class Comment(models.Model):
     profile = models.ForeignKey('Profile', related_name='comments')
 
     email = models.EmailField()
+    meta = models.CharField(max_length=5000)
     text = models.CharField(max_length=5000,
                             validators=[MinLengthValidator(5)])

@@ -283,7 +283,7 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'url', 'created',
             'profile', 'profile_url',
-            'email', 'text',
+            'email', 'meta', 'text',
         )
         read_only_fields = (
             'created',
