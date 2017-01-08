@@ -6,7 +6,7 @@ except ImportError:
     now = datetime.now
 
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Max, F
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
@@ -171,22 +171,26 @@ class TreeViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
 
     @list_route(permission_classes=[C(IsAuthenticated) & C(HasProfile)])
-    def serve_long_unserved_choice(self, request, format=None):
+    def free_tree(self, request, format=None):
         queryset = self.filter_queryset(self.get_queryset())
 
         if queryset.count() == 0:
             trees = []
         else:
-            # Sample one tree with priority to first half of oldest-unserved
-            # trees
-            pks = list(queryset.order_by('last_served')
-                       .values_list('pk', flat=True))
-            if len(pks) <= 1:
-                eligible_pks = pks
-                # Note len(pks) == 0 is dealt with above,
-                # with queryset.count() == 0
+            # Get all trees that have either timed out or have received a
+            # sentence for their latest serve
+            timedout_pks = [tree.pk for tree in queryset if tree.timedout]
+            unlocked_pks = queryset\
+                .annotate(last_sentence=Max('sentences__created'))\
+                .filter(last_sentence__gt=F('last_served'))\
+                .values_list('pk', flat=True)
+            free_pks = list(set(timedout_pks).union(unlocked_pks))
+
+            if len(free_pks) == 0:
+                # No timedout or unlocked trees. Pick any then.
+                eligible_pks = queryset.values_list('pk', flat=True)
             else:
-                eligible_pks = pks[:len(pks) // 2]
+                eligible_pks = free_pks
 
             chosen = choice(eligible_pks)
             tree = Tree.objects.get(pk=chosen)

@@ -1,3 +1,9 @@
+from datetime import timedelta, datetime
+try:
+    from django.utils.timezone import now
+except ImportError:
+    now = datetime.now
+
 from django.db import models
 from django.core.validators import (MinValueValidator, MaxValueValidator,
                                     MinLengthValidator)
@@ -186,10 +192,23 @@ class Sentence(models.Model):
 
 class Tree(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    last_served = models.DateTimeField(auto_now_add=True)
+    last_served = models.DateTimeField(
+        default=datetime(year=2000, month=1, day=1))
     profiles = models.ManyToManyField('Profile', through='Sentence',
                                       through_fields=('tree', 'profile'),
                                       related_name='trees')
+
+    @property
+    def timedout(self):
+        if self.sentences.count() == 0:
+            # No root
+            return False
+
+        config = GistsConfiguration.get_solo()
+        n_tokens = len(self.root.text.split(" "))
+        timeout = timedelta(seconds=2 * n_tokens
+                            * (config.read_factor + config.write_factor))
+        return now() - self.last_served > timeout
 
     @property
     def network_edges(self):
