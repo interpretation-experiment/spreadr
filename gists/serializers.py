@@ -83,6 +83,7 @@ class TreeSerializer(serializers.ModelSerializer):
         model = Tree
         fields = (
             'id', 'url',
+            'created', 'last_served',
             'root',
             'sentences', 'sentences_count',
             'profiles',

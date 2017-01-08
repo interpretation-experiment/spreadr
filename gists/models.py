@@ -186,6 +186,7 @@ class Sentence(models.Model):
 
 class Tree(models.Model):
     created = models.DateTimeField(auto_now_add=True)
+    last_served = models.DateTimeField(auto_now_add=True)
     profiles = models.ManyToManyField('Profile', through='Sentence',
                                       through_fields=('tree', 'profile'),
                                       related_name='trees')

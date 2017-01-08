@@ -18,6 +18,7 @@ from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated
 from allauth.account.models import EmailAddress
 from rest_condition import C
+from numpy.random import choice
 
 from gists.filters import TreeFilter
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
@@ -168,6 +169,35 @@ class TreeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TreeSerializer
     filter_class = TreeFilter
     filter_backends = (filters.DjangoFilterBackend,)
+
+    @list_route(permission_classes=[C(IsAuthenticated) & C(HasProfile)])
+    def serve_long_unserved_choice(self, request, format=None):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if queryset.count() == 0:
+            trees = []
+        else:
+            # Sample one tree with priority to first half of oldest-unserved
+            # trees
+            pks = list(queryset.order_by('last_served')
+                       .values_list('pk', flat=True))
+            if len(pks) <= 1:
+                eligible_pks = pks
+                # Note len(pks) == 0 is dealt with above,
+                # with queryset.count() == 0
+            else:
+                eligible_pks = pks[:len(pks) // 2]
+
+            chosen = choice(eligible_pks)
+            tree = Tree.objects.get(pk=chosen)
+            trees = [tree]
+
+            # Mark served tree with last_served
+            tree.last_served = now()
+            tree.save()
+
+        serializer = self.get_serializer(trees, many=True)
+        return Response(serializer.data)
 
 
 class SentenceViewSet(mixins.CreateModelMixin,
