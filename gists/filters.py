@@ -69,10 +69,10 @@ class TreeFilter(django_filters.FilterSet):
     def filter_shortest_branch_depth(self, queryset, value, tipe):
         if tipe == 'lte':
             def condition(d):
-                d <= ivalue
+                return d <= ivalue
         elif tipe == 'gte':
             def condition(d):
-                d >= ivalue
+                return d >= ivalue
         else:
             raise ValueError("Unknown comparison type: '{}'".format(tipe))
 
