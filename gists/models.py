@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta, datetime
 try:
     from django.utils.timezone import now
@@ -205,7 +206,7 @@ class Tree(models.Model):
             return False
 
         config = GistsConfiguration.get_solo()
-        n_tokens = len(self.root.text.split(" "))
+        n_tokens = len(re.split(' +', self.root.text))
         timeout = timedelta(seconds=2 * n_tokens
                             * (config.read_factor + config.write_factor))
         return now() - self.last_served > timeout
