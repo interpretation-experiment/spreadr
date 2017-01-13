@@ -135,6 +135,11 @@ class Sentence(models.Model):
         ordering = ('-created',)
 
     @classmethod
+    def bucket_counts(cls, queryset):
+        return dict((bucket[0], queryset.filter(bucket=bucket[0]).count())
+                    for bucket in BUCKET_CHOICES)
+
+    @classmethod
     def mean_read_time_proportion_per_profile(cls):
         profiles_means = Sentence.objects.filter(
             parent__isnull=False).values('profile').annotate(
@@ -201,6 +206,12 @@ class Tree(models.Model):
     profiles = models.ManyToManyField('Profile', through='Sentence',
                                       through_fields=('tree', 'profile'),
                                       related_name='trees')
+
+    @classmethod
+    def bucket_counts(cls, queryset):
+        return dict((bucket[0],
+                     queryset.filter(root__bucket=bucket[0]).count())
+                    for bucket in BUCKET_CHOICES)
 
     @property
     def timedout(self):
@@ -286,11 +297,6 @@ class Profile(models.Model):
         n_transformed = self.sentences.count() - n_created
 
         return cost - (n_transformed % cost)
-
-    @property
-    def reformulations_count(self):
-        n_created = self.sentences.filter(parent=None).count()
-        return self.sentences.count() - n_created
 
 
 class Questionnaire(models.Model):

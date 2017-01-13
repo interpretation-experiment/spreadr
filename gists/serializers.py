@@ -6,7 +6,7 @@ from allauth.account.models import EmailAddress
 from gists.models import (Sentence, Tree, Profile, Questionnaire,
                           WordSpan, Comment,
                           LANGUAGE_CHOICES, OTHER_LANGUAGE,
-                          DEFAULT_LANGUAGE, BUCKET_CHOICES)
+                          DEFAULT_LANGUAGE)
 
 
 class SentenceSerializer(serializers.ModelSerializer):
@@ -97,30 +97,32 @@ class TreeSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    user_username = serializers.ReadOnlyField(
-        source='user.username'
-    )
     user_url = serializers.HyperlinkedRelatedField(
         source='user',
         view_name='user-detail',
         read_only=True
     )
+    user_username = serializers.ReadOnlyField(
+        source='user.username'
+    )
+
     trees = serializers.PrimaryKeyRelatedField(
         source='distinct_trees',
         many=True,
         read_only=True
     )
-    trees_count = serializers.ReadOnlyField(
-        source='distinct_trees.count'
-    )
     sentences = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
     )
-    sentences_count = serializers.ReadOnlyField(
-        source='sentences.count'
-    )
+
+    sentences_counts = serializers.SerializerMethodField()
+    reformulations_counts = serializers.SerializerMethodField()
+    trees_counts = serializers.SerializerMethodField()
+    available_trees_counts = serializers.SerializerMethodField()
+
     mothertongue = serializers.ChoiceField(choices=LANGUAGE_CHOICES)
+
     questionnaire = serializers.PrimaryKeyRelatedField(read_only=True)
     questionnaire_url = serializers.HyperlinkedRelatedField(
         source='questionnaire',
@@ -128,6 +130,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True
     )
     questionnaire_done = serializers.SerializerMethodField()
+
     word_span = serializers.PrimaryKeyRelatedField(read_only=True)
     word_span_url = serializers.HyperlinkedRelatedField(
         source='word_span',
@@ -135,6 +138,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True
     )
     word_span_done = serializers.SerializerMethodField()
+
     comments = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
@@ -142,7 +146,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     comments_count = serializers.ReadOnlyField(
         source='comments.count'
     )
-    available_trees_counts = serializers.SerializerMethodField()
 
     def get_questionnaire_done(self, obj):
         return (hasattr(obj, 'questionnaire') and
@@ -151,6 +154,15 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_word_span_done(self, obj):
         return (hasattr(obj, 'word_span') and
                 obj.word_span is not None)
+
+    def get_sentences_counts(self, obj):
+        return Sentence.bucket_counts(obj.sentences)
+
+    def get_reformulations_counts(self, obj):
+        return Sentence.bucket_counts(obj.sentences.exclude(parent=None))
+
+    def get_trees_counts(self, obj):
+        return Tree.bucket_counts(obj.distinct_trees)
 
     def get_available_trees_counts(self, obj):
         """Other- and mothertongue-aware count of available trees, per bucket.
@@ -189,8 +201,7 @@ class ProfileSerializer(serializers.ModelSerializer):
                 .exclude(profiles__mothertongue=OTHER_LANGUAGE)\
                 .exclude(pk__in=obj.trees.values_list('pk', flat=True))
 
-        return dict((bucket[0], qs.filter(root__bucket=bucket[0]).count())
-                    for bucket in BUCKET_CHOICES)
+        return Tree.bucket_counts(qs)
 
     class Meta:
         model = Profile
@@ -198,12 +209,12 @@ class ProfileSerializer(serializers.ModelSerializer):
             'id', 'url', 'created',
             'user', 'user_url', 'user_username',
 
-            'trees', 'trees_count',
-            'sentences', 'sentences_count',
-            'reformulations_count',
+            'trees', 'sentences',
+
+            'sentences_counts', 'reformulations_counts',
+            'trees_counts', 'available_trees_counts',
 
             'suggestion_credit', 'next_credit_in',
-            'available_trees_counts',
 
             'mothertongue',
             'trained_reformulations',
@@ -211,8 +222,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'questionnaire', 'questionnaire_url',
             'questionnaire_done',
 
-            'word_span', 'word_span_url',
-            'word_span_done',
+            'word_span', 'word_span_url', 'word_span_done',
 
             'comments', 'comments_count',
 
