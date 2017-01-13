@@ -15,13 +15,14 @@ from numpy.random import shuffle
 
 from solo.models import SingletonModel
 from .utils import memoize, levenshtein
+from .validators import SpellingValidator, PunctuationValidator
 
 
 DEFAULT_LANGUAGE = 'english'
 OTHER_LANGUAGE = 'other'
 LANGUAGE_CHOICES = sorted(
-    [('english', 'English'),
-     ('other', 'Other')],
+    [(DEFAULT_LANGUAGE, 'English'),
+     (OTHER_LANGUAGE, 'Other')],
     key=lambda l: l[1])
 BUCKET_CHOICES = sorted(
     [('training', 'Training'),
@@ -116,7 +117,9 @@ class Sentence(models.Model):
     profile = models.ForeignKey('Profile', related_name='sentences')
     parent = models.ForeignKey('Sentence', related_name='children', null=True)
     tree_as_root = models.OneToOneField('Tree', related_name='root', null=True)
-    text = models.CharField(max_length=5000)
+    text = models.CharField(max_length=5000,
+                            validators=[SpellingValidator(DEFAULT_LANGUAGE),
+                                        PunctuationValidator()])
     read_time_proportion = models.FloatField(validators=[MinValueValidator(0),
                                                          MaxValueValidator(1)])
     read_time_allotted = models.FloatField(validators=[MinValueValidator(0)])

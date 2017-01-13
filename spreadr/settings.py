@@ -147,6 +147,16 @@ SOLO_CACHE_TIMEOUT = 60 * 5  # 5 mins
 SOLO_CACHE_PREFIX = 'solo'
 
 
+# Hunspell dictionary and affix files
+
+HUNSPELL = {
+    'english': {
+        'DIC': '/usr/share/hunspell/en_GB-large.dic',
+        'AFF': '/usr/share/hunspell/en_GB-large.aff',
+    }
+}
+
+
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 

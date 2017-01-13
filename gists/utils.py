@@ -1,3 +1,26 @@
+import re
+
+import nltk
+
+
+class ContractionlessTokenizer(nltk.tokenize.treebank.TreebankWordTokenizer):
+    """Treebank tokenizer which ignores contractions.
+
+    This is near-identical to the original TreebankWordTokenizer, but with a
+    few regexes changed: we restrict the ENDING_QUOTES regexes to only those
+    not involving contractions, and empty out all the CONTRACTIONS* regexes.
+
+    """
+
+    ENDING_QUOTES = [
+        (re.compile(r'"'), " '' "),
+        (re.compile(r'(\S)(\'\')'), r'\1 \2 '),
+    ]
+    CONTRACTIONS2 = []
+    CONTRACTIONS3 = []
+    CONTRACTIONS4 = []
+
+
 def memoize(func):
     cache = {}
 
