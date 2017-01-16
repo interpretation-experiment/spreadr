@@ -31,7 +31,7 @@ class SpellingValidator:
                      if not self.hunspell.spell(token)]
 
         if len(mispelled) > 0:
-            raise SpellingError("Mispellings: {}"
+            raise SpellingError("SpellingError: {}"
                                 .format(", ".join(mispelled)))
 
 
@@ -41,12 +41,16 @@ class PunctuationError(ValidationError):
 
 class PunctuationValidator:
 
-    NOREPEATS = re.compile(r'([,.;:!?] *){2,}')
-    EXCLUDED = re.compile(r'[\][{}<>\\|/+=_*&^%$#@~`]')
+    REPEATS = re.compile(r'(([,.;:!?] *){2,})')
+    EXCLUDED = re.compile(r'([\][{}<>\\|/+=_*&^%$#@~`]+)')
 
     def __call__(self, text):
-        if self.NOREPEATS.search(text):
-            raise PunctuationError("RepeatedPunctuation")
+        repeats = self.REPEATS.search(text)
+        if repeats is not None:
+            raise PunctuationError("PunctuationRepeatedError: "
+                                   + repeats.groups()[0])
 
-        if self.EXCLUDED.search(text):
-            raise PunctuationError("ExcludedPunctuation")
+        excluded = self.EXCLUDED.search(text)
+        if excluded is not None:
+            raise PunctuationError("PunctuationExcludedError: "
+                                   + excluded.groups()[0])
