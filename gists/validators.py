@@ -41,7 +41,7 @@ class PunctuationError(ValidationError):
 
 class PunctuationValidator:
 
-    REPEATS = re.compile(r'(([,.;:!?] *){2,})')
+    REPEATS = re.compile(r'(([,.;:!?-] *){2,})')
     EXCLUDED = re.compile(r'([\][{}<>\\|/+=_*&^%$#@~`]+)')
 
     def __call__(self, text):
