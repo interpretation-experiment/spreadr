@@ -224,7 +224,7 @@ class Tree(models.Model):
             return False
 
         config = GistsConfiguration.get_solo()
-        n_tokens = len(self.SPACES.split(' +', self.root.text))
+        n_tokens = len(self.SPACES.split(self.root.text))
         timeout = timedelta(seconds=2 * n_tokens
                             * (config.read_factor + config.write_factor))
         return now() - self.last_served > timeout
