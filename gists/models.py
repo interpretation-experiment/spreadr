@@ -78,12 +78,12 @@ class GistsConfiguration(SingletonModel):
         default=settings.DEFAULT_BRANCH_PROBABILITY,
         validators=[MinValueValidator(0.1)])
 
-    read_factor = models.PositiveIntegerField(
+    read_factor = models.FloatField(
         default=settings.DEFAULT_READ_FACTOR,
-        validators=[MinValueValidator(1)])
-    write_factor = models.PositiveIntegerField(
+        validators=[MinValueValidator(0.01)])
+    write_factor = models.FloatField(
         default=settings.DEFAULT_WRITE_FACTOR,
-        validators=[MinValueValidator(1)])
+        validators=[MinValueValidator(0.01)])
     min_tokens = models.PositiveIntegerField(
         default=settings.DEFAULT_MIN_TOKENS,
         validators=[MinValueValidator(1)])
