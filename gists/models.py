@@ -90,6 +90,8 @@ class GistsConfiguration(SingletonModel):
     pause_period = models.PositiveIntegerField(
         default=settings.DEFAULT_PAUSE_PERIOD,
         validators=[MinValueValidator(1)])
+    spell_checking = models.BooleanField(
+        default=settings.DEFAULT_SPELL_CHECKING)
 
     experiment_work = models.PositiveIntegerField(
         default=settings.DEFAULT_EXPERIMENT_WORK,

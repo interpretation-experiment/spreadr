@@ -3,6 +3,7 @@ import re
 import nltk
 import hunspell
 from django.core.exceptions import ValidationError
+from django.utils.deconstruct import deconstructible
 from django.conf import settings
 
 from .utils import ContractionlessTokenizer
@@ -12,6 +13,7 @@ class SpellingError(ValidationError):
     pass
 
 
+@deconstructible
 class SpellingValidator:
 
     CHARACTER_START = re.compile(r'^\w')
@@ -23,6 +25,11 @@ class SpellingValidator:
         self.tokenizer = ContractionlessTokenizer()
 
     def __call__(self, text):
+        from .models import GistsConfiguration
+        if not GistsConfiguration.get_solo().spell_checking:
+            # Spell-checking deactivated
+            return
+
         tokens = [token
                   for sentence in nltk.tokenize.sent_tokenize(text)
                   for token in self.tokenizer.tokenize(sentence)
@@ -34,11 +41,15 @@ class SpellingValidator:
             raise SpellingError("SpellingError: {}"
                                 .format(", ".join(mispelled)))
 
+    def __eq__(self, other):
+        return self.language == other.language
+
 
 class PunctuationError(ValidationError):
     pass
 
 
+@deconstructible
 class PunctuationValidator:
 
     REPEATS = re.compile(r'([,.;:!?-] *){2,}')
@@ -54,3 +65,6 @@ class PunctuationValidator:
         if excluded is not None:
             raise PunctuationError("PunctuationExcludedError: "
                                    + excluded.group(0))
+
+    def __eq__(self, other):
+        return True
