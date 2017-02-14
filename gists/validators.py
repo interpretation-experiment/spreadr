@@ -20,8 +20,8 @@ class SpellingValidator:
 
     def __init__(self, language):
         self.language = language
-        self.hunspell = hunspell.HunSpell(settings.HUNSPELL[language]['DIC'],
-                                          settings.HUNSPELL[language]['AFF'])
+        self.hunspellers = [hunspell.HunSpell(dicts['DIC'], dicts['AFF'])
+                            for dicts in settings.HUNSPELL[language]]
         self.tokenizer = ContractionlessTokenizer()
 
     def __call__(self, text):
@@ -35,7 +35,8 @@ class SpellingValidator:
                   for token in self.tokenizer.tokenize(sentence)
                   if self.CHARACTER_START.search(token) is not None]
         mispelled = [token for token in tokens
-                     if not self.hunspell.spell(token)]
+                     if not sum([speller.spell(token)
+                                 for speller in self.hunspellers])]
 
         if len(mispelled) > 0:
             raise SpellingError("SpellingError: {}"

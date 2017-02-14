@@ -27,7 +27,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-VERSION = '0.16.1'
+VERSION = '0.16.2'
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -151,10 +151,13 @@ SOLO_CACHE_PREFIX = 'solo'
 # Hunspell dictionary and affix files
 
 HUNSPELL = {
-    'english': {
+    'english': [{
         'DIC': os.path.join(BASE_DIR, 'spell', 'en_GB-large.dic'),
         'AFF': os.path.join(BASE_DIR, 'spell', 'en_GB-large.aff'),
-    }
+    }, {
+        'DIC': os.path.join(BASE_DIR, 'spell', 'en_US.dic'),
+        'AFF': os.path.join(BASE_DIR, 'spell', 'en_US.aff'),
+    }]
 }
 
 
