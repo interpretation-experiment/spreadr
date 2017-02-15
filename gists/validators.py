@@ -26,8 +26,8 @@ class SpellingValidator:
 
     def __call__(self, text):
         from .models import GistsConfiguration
-        if not GistsConfiguration.get_solo().spell_checking:
-            # Spell-checking deactivated
+        if GistsConfiguration.get_solo().jabberwocky_mode:
+            # Spell-checking deactivated for Jabberwockies
             return
 
         tokens = [token

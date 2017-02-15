@@ -95,6 +95,7 @@ class Meta(views.APIView):
             'write_factor': config.write_factor,
             'min_tokens': config.min_tokens,
             'pause_period': config.pause_period,
+            'jabberwocky_mode': config.jabberwocky_mode,
 
             # Form parameters
             'gender_choices': remap_choices(GENDER_CHOICES),
