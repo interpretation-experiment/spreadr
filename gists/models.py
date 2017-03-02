@@ -238,9 +238,8 @@ class Tree(models.Model):
     @property
     def shortest_branch_depth(self):
         # No root or nothing but root? Return fast
-        sentences_count = self.sentences.count()
-        if sentences_count <= 1:
-            return sentences_count
+        if self.sentences.count() <= 1:
+            return 0
 
         heads = self.root.children.values_list('pk', flat=True)
         edges = [(e['source'], e['target']) for e in self.network_edges]

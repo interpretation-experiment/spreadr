@@ -174,6 +174,8 @@ class TreeViewSet(viewsets.ReadOnlyModelViewSet):
     filter_class = TreeFilter
     filter_backends = (filters.DjangoFilterBackend,)
 
+    PRIORITY_SHAPING = 'priority_shaping'
+
     @detail_route(methods=['put'],
                   permission_classes=[C(IsAuthenticated) & C(HasProfile)])
     @transaction.atomic()
@@ -196,35 +198,94 @@ class TreeViewSet(viewsets.ReadOnlyModelViewSet):
         tree.save()
         return Response({'status': 'tree lock heartbeaten'})
 
+    def filter_branches_count_lte(self, queryset, value):
+        qs = queryset.annotate(branches_count=Count('root__children'))
+        return qs.filter(branches_count__lte=value)
+
+    def filter_shortest_branch_depth_lte(self, queryset, value):
+        pks = [tree.pk for tree in queryset
+               if tree.shortest_branch_depth <= value]
+        return queryset.filter(pk__in=pks)
+
+    def filter_shape(self, queryset):
+        config = GistsConfiguration.get_solo()
+        # Can't be full
+        queryset = queryset\
+            .annotate(sentences_count=Count('sentences'))\
+            .filter(sentences_count__lte=config.target_branch_count
+                    * config.target_branch_depth)
+        # Can't exceed width
+        queryset = self.filter_branches_count_lte(
+            queryset, config.target_branch_count)
+        # Can't exceed max depth on all branches (but can reach it on all
+        # branches: if the target width isn't reached but all existing branches
+        # are at maximum length, you can still start a new branch)
+        queryset = self.filter_shortest_branch_depth_lte(
+            queryset, config.target_branch_depth)
+        return queryset
+
+    def has_boolean_param(self, params, name):
+        return name in params and params.get(name).lower() == 'true'
+
     @list_route(permission_classes=[C(IsAuthenticated) & C(HasProfile)])
-    @transaction.atomic()
-    def free_tree(self, request, format=None):
+    def random_tree(self, request, format=None):
+        tree = None
         queryset = self.filter_queryset(self.get_queryset())
 
+        # Look for shaped trees first, if asked to
+        if self.has_boolean_param(request.query_params, self.PRIORITY_SHAPING):
+            shaped_pks = self.filter_shape(queryset)\
+                .values_list('pk', flat=True)
+            if len(shaped_pks) > 0:
+                tree = Tree.objects.get(pk=choice(shaped_pks))
+
+        # Shaping wasn't requested, or no shaped trees were available
+        if tree is None:
+            pks = queryset.values_list('pk', flat=True)
+            if len(pks) > 0:
+                tree = Tree.objects.get(pk=choice(pks))
+
+        serializer = self.get_serializer([tree] if tree is not None else [],
+                                         many=True)
+        return Response(serializer.data)
+
+    @list_route(permission_classes=[C(IsAuthenticated) & C(HasProfile)])
+    @transaction.atomic()
+    def lock_random_tree(self, request, format=None):
         profile = self.request.user.profile
         timeout = GistsConfiguration.get_solo().heartbeat_timeout
+        tree = None
 
-        free_pks = queryset\
+        free_qs = self.filter_queryset(self.get_queryset())\
             .select_for_update()\
             .filter(root__isnull=False)\
             .annotate(last_sentence=Max('sentences__created'))\
             .filter(Q(profile_lock_heartbeat__lt=now() - timeout)
-                    | Q(last_sentence__gt=F('profile_lock_heartbeat')))\
-            .values_list('pk', flat=True)
+                    | Q(last_sentence__gt=F('profile_lock_heartbeat')))
 
-        if len(free_pks) == 0:
-            # No unlocked trees, or no trees at all available for the profile
-            # (locked or unlocked). The client makes the difference by looking
-            # at its profile `available_trees_counts`.
-            tree = None
-        else:
-            tree = Tree.objects.get(pk=choice(free_pks))
+        # Look for free shaped trees first, if asked to
+        if self.has_boolean_param(request.query_params, self.PRIORITY_SHAPING):
+            shaped_free_pks = self.filter_shape(free_qs)\
+                .values_list('pk', flat=True)
+            if len(shaped_free_pks) > 0:
+                tree = Tree.objects.get(pk=choice(shaped_free_pks))
+
+        # Shaping wasn't requested, or no free shaped trees were available
+        if tree is None:
+            free_pks = free_qs.values_list('pk', flat=True)
+            if len(free_pks) > 0:
+                tree = Tree.objects.get(pk=choice(free_pks))
+
+        # If we found something, lock it
+        if tree is not None:
             tree.profile_lock = profile
             tree.profile_lock_heartbeat = now()
             tree.save()
+            trees = [tree]
+        else:
+            trees = []
 
-        serializer = self.get_serializer([tree] if tree is not None else [],
-                                         many=True)
+        serializer = self.get_serializer(trees, many=True)
         return Response(serializer.data)
 
 
