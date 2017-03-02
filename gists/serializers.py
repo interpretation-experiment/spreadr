@@ -63,6 +63,14 @@ class SentenceSerializer(serializers.ModelSerializer):
 
 class TreeSerializer(serializers.ModelSerializer):
     root = SentenceSerializer()
+    profile_lock = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+    profile_lock_url = serializers.HyperlinkedRelatedField(
+        source='profile_lock',
+        view_name='profile-detail',
+        read_only=True
+    )
     sentences = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
@@ -83,14 +91,17 @@ class TreeSerializer(serializers.ModelSerializer):
         model = Tree
         fields = (
             'id', 'url',
-            'created', 'last_served',
+            'created',
             'root',
+            'profile_lock', 'profile_lock_url',
+            'profile_lock_heartbeat',
             'sentences', 'sentences_count',
             'profiles',
             'network_edges',
             'branches_count', 'shortest_branch_depth',
         )
         read_only_fields = (
+            'profile_lock_heartbeat',
             'network_edges',
             'shortest_branch_depth',
         )
@@ -112,6 +123,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True
     )
     sentences = serializers.PrimaryKeyRelatedField(
+        many=True,
+        read_only=True
+    )
+    tree_locks = serializers.PrimaryKeyRelatedField(
         many=True,
         read_only=True
     )
@@ -209,7 +224,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'id', 'url', 'created',
             'user', 'user_url', 'user_username',
 
-            'trees', 'sentences',
+            'trees', 'sentences', 'tree_locks',
 
             'sentences_counts', 'reformulations_counts',
             'trees_counts', 'available_trees_counts',

@@ -92,6 +92,12 @@ class GistsConfiguration(SingletonModel):
         validators=[MinValueValidator(1)])
     jabberwocky_mode = models.BooleanField(
         default=settings.DEFAULT_JABBERWOCKY_MODE)
+    heartbeat = models.PositiveIntegerField(
+        default=settings.DEFAULT_HEARTBEAT,
+        validators=[MinValueValidator(1)])
+    heartbeat_margin = models.PositiveIntegerField(
+        default=settings.DEFAULT_HEARTBEAT_MARGIN,
+        validators=[MinValueValidator(1)])
 
     experiment_work = models.PositiveIntegerField(
         default=settings.DEFAULT_EXPERIMENT_WORK,
@@ -101,6 +107,10 @@ class GistsConfiguration(SingletonModel):
         validators=[MinValueValidator(1)])
     base_credit = models.PositiveIntegerField(
         default=settings.DEFAULT_BASE_CREDIT)
+
+    @property
+    def heartbeat_timeout(self):
+        return timedelta(seconds=self.heartbeat + self.heartbeat_margin)
 
     @property
     def tree_cost(self):
@@ -203,7 +213,9 @@ class Sentence(models.Model):
 
 class Tree(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    last_served = models.DateTimeField(
+    profile_lock = models.ForeignKey('Profile', related_name='tree_locks',
+                                     null=True)
+    profile_lock_heartbeat = models.DateTimeField(
         default=datetime(year=2000, month=1, day=1))
     profiles = models.ManyToManyField('Profile', through='Sentence',
                                       through_fields=('tree', 'profile'),
@@ -216,18 +228,6 @@ class Tree(models.Model):
         return dict((bucket[0],
                      queryset.filter(root__bucket=bucket[0]).count())
                     for bucket in BUCKET_CHOICES)
-
-    @property
-    def timedout(self):
-        if self.sentences.count() == 0:
-            # No root
-            return False
-
-        config = GistsConfiguration.get_solo()
-        n_tokens = len(self.SPACES.split(self.root.text))
-        timeout = timedelta(seconds=2 * n_tokens
-                            * (config.read_factor + config.write_factor))
-        return now() - self.last_served > timeout
 
     @property
     def network_edges(self):

@@ -6,7 +6,8 @@ except ImportError:
     now = datetime.now
 
 from django.contrib.auth.models import User
-from django.db.models import Count, Max, F
+from django.db.models import Count, Max, F, Q
+from django.db import transaction
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
@@ -96,6 +97,8 @@ class Meta(views.APIView):
             'min_tokens': config.min_tokens,
             'pause_period': config.pause_period,
             'jabberwocky_mode': config.jabberwocky_mode,
+            'heartbeat': config.heartbeat,
+            'heartbeat_margin': config.heartbeat_margin,
 
             # Form parameters
             'gender_choices': remap_choices(GENDER_CHOICES),
@@ -171,37 +174,57 @@ class TreeViewSet(viewsets.ReadOnlyModelViewSet):
     filter_class = TreeFilter
     filter_backends = (filters.DjangoFilterBackend,)
 
+    @detail_route(methods=['put'],
+                  permission_classes=[C(IsAuthenticated) & C(HasProfile)])
+    @transaction.atomic()
+    def heartbeat(self, request, pk=None, format=None):
+        profile = self.request.user.profile
+        timeout = GistsConfiguration.get_solo().heartbeat_timeout
+
+        # self.get_object() doesn't let us use select_for_update(), which we
+        # need to lock this tree for the duration of the view. So we directly
+        # use django's get_object_or_404 with self.check_object_permissions().
+        tree = get_object_or_404(self.get_queryset().select_for_update(),
+                                 pk=pk)
+        self.check_object_permissions(self.request, tree)
+
+        if (tree.profile_lock is None or tree.profile_lock.id != profile.id
+                or tree.profile_lock_heartbeat < now() - timeout):
+            raise PermissionDenied('tree is not locked by requesting profile')
+
+        tree.profile_lock_heartbeat = now()
+        tree.save()
+        return Response({'status': 'tree lock heartbeaten'})
+
     @list_route(permission_classes=[C(IsAuthenticated) & C(HasProfile)])
+    @transaction.atomic()
     def free_tree(self, request, format=None):
         queryset = self.filter_queryset(self.get_queryset())
 
-        if queryset.count() == 0:
-            trees = []
+        profile = self.request.user.profile
+        timeout = GistsConfiguration.get_solo().heartbeat_timeout
+
+        free_pks = queryset\
+            .select_for_update()\
+            .filter(root__isnull=False)\
+            .annotate(last_sentence=Max('sentences__created'))\
+            .filter(Q(profile_lock_heartbeat__lt=now() - timeout)
+                    | Q(last_sentence__gt=F('profile_lock_heartbeat')))\
+            .values_list('pk', flat=True)
+
+        if len(free_pks) == 0:
+            # No unlocked trees, or no trees at all available for the profile
+            # (locked or unlocked). The client makes the difference by looking
+            # at its profile `available_trees_counts`.
+            tree = None
         else:
-            # Get all trees that have either timed out or have received a
-            # sentence for their latest serve
-            timedout_pks = [tree.pk for tree in queryset if tree.timedout]
-            unlocked_pks = queryset\
-                .annotate(last_sentence=Max('sentences__created'))\
-                .filter(last_sentence__gt=F('last_served'))\
-                .values_list('pk', flat=True)
-            free_pks = list(set(timedout_pks).union(unlocked_pks))
-
-            if len(free_pks) == 0:
-                # No timedout or unlocked trees. Pick any then.
-                eligible_pks = queryset.values_list('pk', flat=True)
-            else:
-                eligible_pks = free_pks
-
-            chosen = choice(eligible_pks)
-            tree = Tree.objects.get(pk=chosen)
-            trees = [tree]
-
-            # Mark served tree with last_served
-            tree.last_served = now()
+            tree = Tree.objects.get(pk=choice(free_pks))
+            tree.profile_lock = profile
+            tree.profile_lock_heartbeat = now()
             tree.save()
 
-        serializer = self.get_serializer(trees, many=True)
+        serializer = self.get_serializer([tree] if tree is not None else [],
+                                         many=True)
         return Response(serializer.data)
 
 
@@ -223,7 +246,7 @@ class SentenceViewSet(mixins.CreateModelMixin,
     ordering = ('-created',)
 
     @classmethod
-    def obtain_free_tree(cls):
+    def obtain_empty_tree(cls):
         trees = Tree.objects.annotate(sentences_count=Count('sentences'))
         return trees.filter(sentences_count=0).first() or Tree.objects.create()
 
@@ -236,7 +259,7 @@ class SentenceViewSet(mixins.CreateModelMixin,
             # or have suggestion credit
             if not (profile.user.is_staff or profile.suggestion_credit > 0):
                 raise PermissionDenied
-            tree = self.obtain_free_tree()
+            tree = self.obtain_empty_tree()
             tree_as_root = tree
         else:
             tree = parent.tree
@@ -469,8 +492,8 @@ class EmailAddressViewSet(mixins.CreateModelMixin,
 
     @detail_route(methods=['post'],
                   permission_classes=[C(IsAuthenticated) & C(ObjUserIsSelf)])
-    def verify(self, request, pk=None):
-        email = get_object_or_404(self.queryset, pk=pk)
+    def verify(self, request, pk=None, format=None):
+        email = self.get_object()
         email.send_confirmation(request)
         return Response({'status': "A verification email has been sent "
                          "to '{}', please follow the "
