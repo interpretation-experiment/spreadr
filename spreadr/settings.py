@@ -27,7 +27,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-VERSION = '0.17.0'
+VERSION = '0.17.1'
 
 INSTALLED_APPS = (
     'django.contrib.admin',
