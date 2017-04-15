@@ -213,7 +213,7 @@ class TreeViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset\
             .annotate(sentences_count=Count('sentences'))\
             .filter(sentences_count__lte=config.target_branch_count
-                    * config.target_branch_depth)
+                    * config.target_branch_depth + 1)
         # Can't exceed width
         queryset = self.filter_branches_count_lte(
             queryset, config.target_branch_count)
